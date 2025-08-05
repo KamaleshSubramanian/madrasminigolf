@@ -225,54 +225,53 @@ export default function Gameplay() {
                   <h3 className="text-lg font-semibold text-golf-dark">{playerName}</h3>
                 </div>
                 
-                {/* Score Buttons */}
-                <div className="grid grid-cols-6 gap-2 mb-4">
-                  {[1, 2, 3, 4, 5, 6].map(strokes => (
-                    <Button
-                      key={strokes}
-                      variant={holeScores[playerName] === strokes ? "default" : "outline"}
-                      className={`py-3 font-bold transition-all duration-200 ${
-                        holeScores[playerName] === strokes
-                          ? "bg-golf-green text-white border-golf-green"
-                          : "bg-gray-100 border-2 border-gray-200 hover:border-golf-green hover:bg-golf-green hover:text-white"
-                      }`}
-                      onClick={() => handleScoreSelect(playerName, strokes)}
-                    >
-                      {strokes}
-                    </Button>
-                  ))}
-                </div>
-                
-                {/* Manual Input for 6+ strokes */}
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm text-golf-dark font-medium">More than 6?</label>
+                {/* Score Buttons and Incrementer */}
+                <div className="flex items-center gap-3">
+                  <div className="grid grid-cols-6 gap-2 flex-1">
+                    {[1, 2, 3, 4, 5, 6].map(strokes => (
+                      <Button
+                        key={strokes}
+                        variant={holeScores[playerName] === strokes ? "default" : "outline"}
+                        className={`py-3 font-bold transition-all duration-200 ${
+                          holeScores[playerName] === strokes
+                            ? "bg-golf-green text-white border-golf-green"
+                            : "bg-gray-100 border-2 border-gray-200 hover:border-golf-green hover:bg-golf-green hover:text-white"
+                        }`}
+                        onClick={() => handleScoreSelect(playerName, strokes)}
+                      >
+                        {strokes}
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  {/* Inline Incrementer for 7+ */}
                   <div className="flex items-center border-2 border-gray-200 rounded-md focus-within:border-golf-green">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => decrementScore(playerName)}
-                      className="h-8 w-8 p-0 hover:bg-gray-100 rounded-r-none"
+                      className="h-10 w-8 p-0 hover:bg-gray-100 rounded-r-none"
                       disabled={(holeScores[playerName] || 7) <= 7}
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </Button>
                     <Input
                       type="number"
                       min="7"
                       max="20"
-                      placeholder="7+"
-                      className="w-16 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none"
+                      className="w-12 h-10 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none text-sm font-bold"
                       onChange={(e) => handleManualScore(playerName, e.target.value)}
                       value={holeScores[playerName] > 6 ? holeScores[playerName] : ""}
+                      placeholder="7+"
                     />
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => incrementScore(playerName)}
-                      className="h-8 w-8 p-0 hover:bg-gray-100 rounded-l-none"
+                      className="h-10 w-8 p-0 hover:bg-gray-100 rounded-l-none"
                       disabled={(holeScores[playerName] || 7) >= 20}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
