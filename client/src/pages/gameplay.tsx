@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useLocation, useParams } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, ArrowRight, Flag } from "lucide-react";
+import { ArrowLeft, ArrowRight, Flag, Plus, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Gameplay() {
@@ -87,6 +87,34 @@ export default function Gameplay() {
     }
   };
 
+  const incrementScore = (playerName: string) => {
+    const currentScore = holeScores[playerName] || 7;
+    if (currentScore < 20) {
+      setHoleScores(prev => ({
+        ...prev,
+        [playerName]: currentScore + 1,
+      }));
+    }
+  };
+
+  const decrementScore = (playerName: string) => {
+    const currentScore = holeScores[playerName] || 8;
+    if (currentScore > 7) {
+      setHoleScores(prev => ({
+        ...prev,
+        [playerName]: currentScore - 1,
+      }));
+    }
+  };
+
+  const calculateTotalScore = (playerName: string) => {
+    let total = 0;
+    for (let hole = 1; hole < currentHole; hole++) {
+      total += scores[playerName][hole] || 0;
+    }
+    return total;
+  };
+
   const handleNextHole = () => {
     // Validate all players have scores
     const missingScores = playerNames.filter(name => !holeScores[name] || holeScores[name] === 0);
@@ -161,6 +189,30 @@ export default function Gameplay() {
           ))}
         </div>
         
+        {/* Running Totals (from hole 2 onwards) */}
+        {currentHole > 1 && (
+          <Card className="mb-6 bg-gradient-to-r from-golf-light to-golf-green text-white shadow-lg">
+            <CardContent className="p-4">
+              <h3 className="text-lg font-bold mb-3 text-center">Running Totals</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {playerNames.map((playerName, index) => (
+                  <div key={playerName} className="flex justify-between items-center bg-white/20 rounded-lg p-3">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-white text-golf-green rounded-full flex items-center justify-center font-bold mr-3 text-sm">
+                        {index + 1}
+                      </div>
+                      <span className="font-medium">{playerName}</span>
+                    </div>
+                    <div className="text-xl font-bold">
+                      {calculateTotalScore(playerName)} strokes
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Player Scoring */}
         <div className="space-y-6">
           {playerNames.map((playerName, index) => (
@@ -194,15 +246,35 @@ export default function Gameplay() {
                 {/* Manual Input for 6+ strokes */}
                 <div className="flex items-center space-x-2">
                   <label className="text-sm text-golf-dark font-medium">More than 6?</label>
-                  <Input
-                    type="number"
-                    min="7"
-                    max="20"
-                    placeholder="7+"
-                    className="w-20 text-center border-2 border-gray-200 focus:border-golf-green"
-                    onChange={(e) => handleManualScore(playerName, e.target.value)}
-                    value={holeScores[playerName] > 6 ? holeScores[playerName] : ""}
-                  />
+                  <div className="flex items-center border-2 border-gray-200 rounded-md focus-within:border-golf-green">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => decrementScore(playerName)}
+                      className="h-8 w-8 p-0 hover:bg-gray-100 rounded-r-none"
+                      disabled={(holeScores[playerName] || 7) <= 7}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Input
+                      type="number"
+                      min="7"
+                      max="20"
+                      placeholder="7+"
+                      className="w-16 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none"
+                      onChange={(e) => handleManualScore(playerName, e.target.value)}
+                      value={holeScores[playerName] > 6 ? holeScores[playerName] : ""}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => incrementScore(playerName)}
+                      className="h-8 w-8 p-0 hover:bg-gray-100 rounded-l-none"
+                      disabled={(holeScores[playerName] || 7) >= 20}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
