@@ -1,0 +1,235 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { useLocation, useParams } from "wouter";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { ArrowLeft, ArrowRight, Flag } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+export default function Gameplay() {
+  const { gameId } = useParams();
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  
+  const [currentHole, setCurrentHole] = useState(1);
+  const [playerNames, setPlayerNames] = useState<string[]>([]);
+  const [scores, setScores] = useState<{ [playerName: string]: { [hole: number]: number } }>({});
+  const [holeScores, setHoleScores] = useState<{ [playerName: string]: number }>({});
+
+  useEffect(() => {
+    // Load player names and game data
+    const storedNames = sessionStorage.getItem("playerNames");
+    const currentGame = sessionStorage.getItem("currentGame");
+    
+    if (!storedNames || !currentGame) {
+      navigate("/");
+      return;
+    }
+    
+    const names = JSON.parse(storedNames);
+    setPlayerNames(names);
+    
+    // Initialize scores
+    const initialScores: { [playerName: string]: { [hole: number]: number } } = {};
+    const initialHoleScores: { [playerName: string]: number } = {};
+    
+    names.forEach((name: string) => {
+      initialScores[name] = {};
+      initialHoleScores[name] = 0;
+    });
+    
+    setScores(initialScores);
+    setHoleScores(initialHoleScores);
+  }, [navigate]);
+
+  const saveScoresMutation = useMutation({
+    mutationFn: (scoresData: any[]) => apiRequest("POST", `/api/games/${gameId}/scores`, scoresData),
+    onSuccess: () => {
+      if (currentHole === 7) {
+        // Game completed, navigate to results
+        navigate(`/results/${gameId}`);
+      } else {
+        // Move to next hole
+        setCurrentHole(prev => prev + 1);
+        // Reset hole scores for next hole
+        const resetHoleScores: { [playerName: string]: number } = {};
+        playerNames.forEach(name => {
+          resetHoleScores[name] = 0;
+        });
+        setHoleScores(resetHoleScores);
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Error saving scores",
+        description: "There was an error saving the scores. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleScoreSelect = (playerName: string, strokes: number) => {
+    setHoleScores(prev => ({
+      ...prev,
+      [playerName]: strokes,
+    }));
+  };
+
+  const handleManualScore = (playerName: string, strokes: string) => {
+    const strokeCount = parseInt(strokes);
+    if (strokeCount >= 7 && strokeCount <= 20) {
+      setHoleScores(prev => ({
+        ...prev,
+        [playerName]: strokeCount,
+      }));
+    }
+  };
+
+  const handleNextHole = () => {
+    // Validate all players have scores
+    const missingScores = playerNames.filter(name => !holeScores[name] || holeScores[name] === 0);
+    
+    if (missingScores.length > 0) {
+      toast({
+        title: "Missing scores",
+        description: "Please enter scores for all players before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Save scores for current hole
+    const scoresData = playerNames.map(playerName => ({
+      playerName,
+      hole: currentHole,
+      strokes: holeScores[playerName],
+    }));
+
+    // Update local scores state
+    const newScores = { ...scores };
+    playerNames.forEach(playerName => {
+      newScores[playerName][currentHole] = holeScores[playerName];
+    });
+    setScores(newScores);
+
+    saveScoresMutation.mutate(scoresData);
+  };
+
+  const handlePreviousHole = () => {
+    if (currentHole > 1) {
+      setCurrentHole(prev => prev - 1);
+      // Load previous hole scores
+      const prevHoleScores: { [playerName: string]: number } = {};
+      playerNames.forEach(name => {
+        prevHoleScores[name] = scores[name][currentHole - 1] || 0;
+      });
+      setHoleScores(prevHoleScores);
+    }
+  };
+
+  if (!playerNames.length) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-golf-cream p-4">
+      <div className="max-w-md mx-auto pt-8">
+        {/* Header with Hole Info */}
+        <div className="text-center mb-6">
+          <div className="text-5xl mb-2">⛳</div>
+          <h2 className="text-3xl font-bold text-golf-dark">Hole {currentHole}</h2>
+          <p className="text-golf-dark opacity-75">Enter scores for each player</p>
+        </div>
+        
+        {/* Progress Indicators */}
+        <div className="flex justify-center space-x-2 mb-8">
+          {Array.from({ length: 7 }, (_, i) => i + 1).map(hole => (
+            <div
+              key={hole}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                hole < currentHole
+                  ? "bg-golf-green text-white"
+                  : hole === currentHole
+                  ? "bg-golf-light text-white border-2 border-golf-dark"
+                  : "bg-gray-300 text-gray-600"
+              }`}
+            >
+              {hole}
+            </div>
+          ))}
+        </div>
+        
+        {/* Player Scoring */}
+        <div className="space-y-6">
+          {playerNames.map((playerName, index) => (
+            <Card key={playerName} className="shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 bg-golf-green text-white rounded-full flex items-center justify-center font-bold mr-3">
+                    {index + 1}
+                  </div>
+                  <h3 className="text-lg font-semibold text-golf-dark">{playerName}</h3>
+                </div>
+                
+                {/* Score Buttons */}
+                <div className="grid grid-cols-6 gap-2 mb-4">
+                  {[1, 2, 3, 4, 5, 6].map(strokes => (
+                    <Button
+                      key={strokes}
+                      variant={holeScores[playerName] === strokes ? "default" : "outline"}
+                      className={`py-3 font-bold transition-all duration-200 ${
+                        holeScores[playerName] === strokes
+                          ? "bg-golf-green text-white border-golf-green"
+                          : "bg-gray-100 border-2 border-gray-200 hover:border-golf-green hover:bg-golf-green hover:text-white"
+                      }`}
+                      onClick={() => handleScoreSelect(playerName, strokes)}
+                    >
+                      {strokes}
+                    </Button>
+                  ))}
+                </div>
+                
+                {/* Manual Input for 6+ strokes */}
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm text-golf-dark font-medium">More than 6?</label>
+                  <Input
+                    type="number"
+                    min="7"
+                    max="20"
+                    placeholder="7+"
+                    className="w-20 text-center border-2 border-gray-200 focus:border-golf-green"
+                    onChange={(e) => handleManualScore(playerName, e.target.value)}
+                    value={holeScores[playerName] > 6 ? holeScores[playerName] : ""}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        {/* Navigation Buttons */}
+        <div className="flex space-x-4 mt-8">
+          <Button
+            onClick={handlePreviousHole}
+            disabled={currentHole === 1}
+            variant="outline"
+            className="flex-1 font-bold py-3 border-2 border-gray-300 hover:bg-gray-50"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Previous Hole
+          </Button>
+          <Button
+            onClick={handleNextHole}
+            disabled={saveScoresMutation.isPending}
+            className="flex-1 bg-golf-green hover:bg-golf-light text-white font-bold py-3"
+          >
+            {saveScoresMutation.isPending ? "Saving..." : currentHole === 7 ? "Finish Game" : "Next Hole"}
+            {currentHole === 7 ? <Flag className="ml-2 h-4 w-4" /> : <ArrowRight className="ml-2 h-4 w-4" />}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

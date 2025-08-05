@@ -1,0 +1,183 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { insertPlayerSchema } from "@shared/schema";
+import { z } from "zod";
+import { ArrowRight, FileText } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+const registrationSchema = insertPlayerSchema.extend({
+  consent: z.boolean().refine(val => val === true, {
+    message: "You must agree to the terms and conditions",
+  }),
+});
+
+type RegistrationForm = z.infer<typeof registrationSchema>;
+
+export default function Registration() {
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+
+  const form = useForm<RegistrationForm>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: {
+      name: "",
+      contact: "",
+      email: "",
+      consent: false,
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: (data: Omit<RegistrationForm, "consent">) => 
+      apiRequest("POST", "/api/players", data),
+    onSuccess: async (response) => {
+      const player = await response.json();
+      // Store player data in sessionStorage for next steps
+      sessionStorage.setItem("currentPlayer", JSON.stringify(player));
+      navigate("/players");
+    },
+    onError: () => {
+      toast({
+        title: "Registration failed",
+        description: "There was an error creating your account. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: RegistrationForm) => {
+    const { consent, ...playerData } = data;
+    registerMutation.mutate(playerData);
+  };
+
+  return (
+    <div className="min-h-screen bg-golf-cream p-4">
+      <div className="max-w-md mx-auto pt-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="text-4xl mb-2">📝</div>
+          <h2 className="text-2xl font-bold text-golf-dark">Player Registration</h2>
+          <p className="text-golf-dark opacity-75">Let's get to know you!</p>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between text-sm text-golf-dark mb-2">
+            <span>Step 1 of 3</span>
+            <span>33%</span>
+          </div>
+          <Progress value={33} className="h-2" />
+        </div>
+        
+        {/* Registration Form */}
+        <Card className="shadow-lg">
+          <CardContent className="p-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-golf-dark font-medium">Full Name *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter your full name" 
+                          className="border-2 border-gray-200 focus:border-golf-green"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="contact"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-golf-dark font-medium">Contact Number *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="+91 9876543210" 
+                          className="border-2 border-gray-200 focus:border-golf-green"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-golf-dark font-medium">Email Address *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="email"
+                          placeholder="your.email@example.com" 
+                          className="border-2 border-gray-200 focus:border-golf-green"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="consent"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox 
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm text-golf-dark">
+                          I agree to the{" "}
+                          <a href="#" className="text-golf-green underline">Terms of Service</a>
+                          {" "}and{" "}
+                          <a href="#" className="text-golf-green underline">Privacy Policy</a>. 
+                          I consent to receive updates about my game.
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3"
+                  disabled={registerMutation.isPending}
+                >
+                  {registerMutation.isPending ? "Registering..." : "Continue to Player Setup"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
