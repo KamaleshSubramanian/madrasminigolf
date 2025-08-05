@@ -175,7 +175,7 @@ export default function Gameplay() {
         <div className="flex justify-center space-x-2 mb-8">
           {Array.from({ length: 7 }, (_, i) => i + 1).map(hole => (
             <div
-              key={hole}
+              key={`hole-${hole}`}
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 hole < currentHole
                   ? "bg-golf-green text-white"
@@ -196,7 +196,7 @@ export default function Gameplay() {
               <h3 className="text-lg font-bold mb-3 text-center">Running Totals</h3>
               <div className="grid grid-cols-1 gap-2">
                 {playerNames.map((playerName, index) => (
-                  <div key={playerName} className="flex justify-between items-center bg-white/20 rounded-lg p-3">
+                  <div key={`total-${index}-${playerName}`} className="flex justify-between items-center bg-white/20 rounded-lg p-3">
                     <div className="flex items-center">
                       <div className="w-8 h-8 bg-white text-golf-green rounded-full flex items-center justify-center font-bold mr-3 text-sm">
                         {index + 1}
@@ -216,7 +216,7 @@ export default function Gameplay() {
         {/* Player Scoring */}
         <div className="space-y-6">
           {playerNames.map((playerName, index) => (
-            <Card key={playerName} className="shadow-lg">
+            <Card key={`player-${index}-${playerName}`} className="shadow-lg">
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 bg-golf-green text-white rounded-full flex items-center justify-center font-bold mr-3">
@@ -226,11 +226,11 @@ export default function Gameplay() {
                 </div>
                 
                 {/* Score Buttons and Incrementer */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mb-4">
                   <div className="grid grid-cols-6 gap-2 flex-1">
                     {[1, 2, 3, 4, 5, 6].map(strokes => (
                       <Button
-                        key={strokes}
+                        key={`${playerName}-stroke-${strokes}`}
                         variant={holeScores[playerName] === strokes ? "default" : "outline"}
                         className={`py-3 font-bold transition-all duration-200 ${
                           holeScores[playerName] === strokes
@@ -275,6 +275,16 @@ export default function Gameplay() {
                     </Button>
                   </div>
                 </div>
+                
+                {/* Individual Player Total (from hole 2 onwards) */}
+                {currentHole > 1 && (
+                  <div className="bg-golf-light/20 rounded-lg p-3 text-center">
+                    <div className="text-sm text-golf-dark font-medium">Total Score</div>
+                    <div className="text-2xl font-bold text-golf-green">
+                      {calculateTotalScore(playerName)} strokes
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

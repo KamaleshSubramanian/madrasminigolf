@@ -74,6 +74,17 @@ export default function PlayerSetup() {
       return;
     }
 
+    // Check for duplicate names
+    const uniqueNames = new Set(filledNames.map(name => name.trim().toLowerCase()));
+    if (uniqueNames.size !== filledNames.length) {
+      toast({
+        title: "Duplicate player names",
+        description: "Each player must have a unique name. Please update any duplicates.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Check if today is weekend (Saturday = 6, Sunday = 0)
     const today = new Date();
     const isWeekend = today.getDay() === 0 || today.getDay() === 6;
