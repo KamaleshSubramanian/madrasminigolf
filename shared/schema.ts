@@ -80,9 +80,14 @@ export const insertPlayerSchema = createInsertSchema(players).omit({
   createdAt: true,
 });
 
-export const insertGameSchema = createInsertSchema(games).omit({
+export const insertGameSchema = createInsertSchema(games, {
+  playerNames: z.array(z.string()).min(1),
+  playerCount: z.number().int().min(1).max(8),
+  isWeekend: z.boolean(),
+}).omit({
   id: true,
   completedAt: true,
+  totalCost: true,
 });
 
 export const insertScoreSchema = createInsertSchema(scores).omit({

@@ -2,8 +2,16 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcryptjs";
-import { insertPlayerSchema, insertGameSchema, insertScoreSchema, insertPricingSchema } from "@shared/schema";
+import { insertPlayerSchema, insertScoreSchema, insertPricingSchema } from "@shared/schema";
 import { z } from "zod";
+
+// Custom game creation schema without totalCost
+const createGameSchema = z.object({
+  playerId: z.string(),
+  playerNames: z.array(z.string()).min(1),
+  playerCount: z.number().int().min(1).max(8),
+  isWeekend: z.boolean(),
+});
 
 // Session user type
 declare module "express-session" {
@@ -65,7 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create game
   app.post("/api/games", async (req, res) => {
     try {
-      const gameData = insertGameSchema.parse(req.body);
+      const gameData = createGameSchema.parse(req.body);
       
       // Calculate cost based on pricing and day
       const currentPricing = await storage.getCurrentPricing();
