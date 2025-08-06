@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import AdminSidebar from "@/components/admin-sidebar";
-import { Download } from "lucide-react";
+import { Download, LogOut, TrendingUp, BarChart3 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Sales() {
   const [, navigate] = useLocation();
-  const [selectedPeriod, setSelectedPeriod] = useState<"day" | "week" | "month">("day");
+  const [selectedPeriod, setSelectedPeriod] = useState<"today" | "week" | "month">("today");
+  const [chartType, setChartType] = useState<"line" | "bar">("line");
 
   // Check authentication
   const { data: user, isLoading: userLoading, error } = useQuery({
@@ -19,13 +21,13 @@ export default function Sales() {
   });
 
   const { data: salesData, isLoading: salesLoading } = useQuery({
-    queryKey: ["/api/admin/sales", selectedPeriod],
+    queryKey: ["/api/admin/sales", selectedPeriod === "today" ? "day" : selectedPeriod],
     enabled: !!user,
   });
 
   const { data: hourlyData, isLoading: hourlyLoading } = useQuery({
     queryKey: ["/api/admin/hourly-sales"],
-    enabled: !!user && selectedPeriod === "day",
+    enabled: !!user && selectedPeriod === "today",
   });
 
   const { data: weeklyData, isLoading: weeklyLoading } = useQuery({
@@ -41,6 +43,13 @@ export default function Sales() {
   const { data: transactions, isLoading: transactionsLoading } = useQuery({
     queryKey: ["/api/admin/transactions"],
     enabled: !!user,
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/logout"),
+    onSuccess: () => {
+      navigate("/admin");
+    },
   });
 
   useEffect(() => {
@@ -85,24 +94,40 @@ export default function Sales() {
       <AdminSidebar />
       
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Sales Analytics</h2>
-          <p className="text-gray-600">Track your revenue and game performance</p>
-        </div>
+        <header className="bg-white shadow-sm border-b border-gray-200 px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Sales Analytics</h1>
+              <p className="text-gray-600">Track your revenue and game performance</p>
+            </div>
+            <Button
+              onClick={() => logoutMutation.mutate()}
+              variant="outline"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+              disabled={logoutMutation.isPending}
+            >
+              <LogOut className="h-4 w-4" />
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
+            </Button>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="flex-1 p-8">
         
         {/* Time Period Selector */}
         <Card className="shadow-md p-6 mb-8">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-800">Select Time Period</h3>
             <div className="flex space-x-2">
-              {["day", "week", "month"].map((period) => (
+              {["today", "week", "month"].map((period) => (
                 <Button
                   key={period}
                   variant={selectedPeriod === period ? "default" : "outline"}
                   className={selectedPeriod === period ? "bg-golf-green text-white" : ""}
-                  onClick={() => setSelectedPeriod(period as "day" | "week" | "month")}
+                  onClick={() => setSelectedPeriod(period as "today" | "week" | "month")}
                 >
                   {period.charAt(0).toUpperCase() + period.slice(1)}
                 </Button>
@@ -116,7 +141,7 @@ export default function Sales() {
           <Card className="shadow-md">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                {selectedPeriod === "day" ? "Today's" : selectedPeriod === "week" ? "Weekly" : "Monthly"} Summary
+                {selectedPeriod === "today" ? "Today's" : selectedPeriod === "week" ? "Weekly" : "Monthly"} Summary
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between">
@@ -150,20 +175,40 @@ export default function Sales() {
           {/* Charts - Different for each period */}
           <Card className="shadow-md lg:col-span-2">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                {selectedPeriod === "day" ? "Hourly Revenue" : 
-                 selectedPeriod === "week" ? "Daily Revenue (This Week)" : 
-                 "Daily Revenue (This Month)"}
-              </h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {selectedPeriod === "today" ? "Hourly Revenue" : 
+                   selectedPeriod === "week" ? "Daily Revenue (This Week)" : 
+                   "Daily Revenue (This Month)"}
+                </h3>
+                <div className="flex space-x-1 bg-gray-100 rounded-md p-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-8 px-3 ${chartType === "line" ? "bg-white shadow-sm" : ""}`}
+                    onClick={() => setChartType("line")}
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-8 px-3 ${chartType === "bar" ? "bg-white shadow-sm" : ""}`}
+                    onClick={() => setChartType("bar")}
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
               <div className="h-64">
-                {(selectedPeriod === "day" && hourlyLoading) || 
+                {(selectedPeriod === "today" && hourlyLoading) || 
                  (selectedPeriod === "week" && weeklyLoading) || 
                  (selectedPeriod === "month" && monthlyLoading) ? (
                   <div className="flex items-center justify-center w-full h-full">
                     <div>Loading chart...</div>
                   </div>
                 ) : (() => {
-                  const currentData = selectedPeriod === "day" ? hourlyData : 
+                  const currentData = selectedPeriod === "today" ? hourlyData : 
                                     selectedPeriod === "week" ? weeklyData : monthlyData;
                   
                   if (!currentData || !Array.isArray(currentData) || currentData.length === 0) {
@@ -174,10 +219,10 @@ export default function Sales() {
                     );
                   }
 
-                  // Transform data for line chart
+                  // Transform data for chart
                   const chartData = currentData.map((data: any) => ({
-                    name: selectedPeriod === "day" ? 
-                      `${data.hour}:00` : // Hour format for day
+                    name: selectedPeriod === "today" ? 
+                      `${data.hour}:00` : // Hour format for today
                       data.label || `Day ${data.day}`, // Date label for week/month
                     revenue: parseFloat(data.revenue || "0"),
                     displayRevenue: `₹${parseFloat(data.revenue || "0").toLocaleString()}`
@@ -185,36 +230,66 @@ export default function Sales() {
                   
                   return (
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                        <XAxis 
-                          dataKey="name" 
-                          stroke="#6b7280"
-                          fontSize={12}
-                        />
-                        <YAxis 
-                          stroke="#6b7280"
-                          fontSize={12}
-                          tickFormatter={(value) => `₹${value}`}
-                        />
-                        <Tooltip 
-                          formatter={(value: any) => [`₹${value}`, 'Revenue']}
-                          labelStyle={{ color: '#374151' }}
-                          contentStyle={{ 
-                            backgroundColor: '#f9fafb', 
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '6px'
-                          }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="revenue" 
-                          stroke="#16a34a" 
-                          strokeWidth={2}
-                          dot={{ fill: '#16a34a', strokeWidth: 2, r: 4 }}
-                          activeDot={{ r: 6, stroke: '#16a34a', strokeWidth: 2, fill: '#ffffff' }}
-                        />
-                      </LineChart>
+                      {chartType === "line" ? (
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                          <XAxis 
+                            dataKey="name" 
+                            stroke="#6b7280"
+                            fontSize={12}
+                          />
+                          <YAxis 
+                            stroke="#6b7280"
+                            fontSize={12}
+                            tickFormatter={(value) => `₹${value}`}
+                          />
+                          <Tooltip 
+                            formatter={(value: any) => [`₹${value}`, 'Revenue']}
+                            labelStyle={{ color: '#374151' }}
+                            contentStyle={{ 
+                              backgroundColor: '#f9fafb', 
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '6px'
+                            }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="revenue" 
+                            stroke="#16a34a" 
+                            strokeWidth={2}
+                            dot={{ fill: '#16a34a', strokeWidth: 2, r: 4 }}
+                            activeDot={{ r: 6, stroke: '#16a34a', strokeWidth: 2, fill: '#ffffff' }}
+                          />
+                        </LineChart>
+                      ) : (
+                        <BarChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                          <XAxis 
+                            dataKey="name" 
+                            stroke="#6b7280"
+                            fontSize={12}
+                          />
+                          <YAxis 
+                            stroke="#6b7280"
+                            fontSize={12}
+                            tickFormatter={(value) => `₹${value}`}
+                          />
+                          <Tooltip 
+                            formatter={(value: any) => [`₹${value}`, 'Revenue']}
+                            labelStyle={{ color: '#374151' }}
+                            contentStyle={{ 
+                              backgroundColor: '#f9fafb', 
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '6px'
+                            }}
+                          />
+                          <Bar 
+                            dataKey="revenue" 
+                            fill="#16a34a"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
+                      )}
                     </ResponsiveContainer>
                   );
                 })()}
@@ -282,6 +357,7 @@ export default function Sales() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

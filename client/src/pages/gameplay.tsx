@@ -15,7 +15,7 @@ export default function Gameplay() {
   
   const [currentHole, setCurrentHole] = useState(1);
   const [playerNames, setPlayerNames] = useState<string[]>([]);
-  const [scores, setScores] = useState<{ [playerName: string]: { [hole: number]: number } }>({});
+  const [totalScores, setTotalScores] = useState<{ [playerName: string]: number }>({});
   const [holeScores, setHoleScores] = useState<{ [playerName: string]: number }>({});
 
   useEffect(() => {
@@ -32,34 +32,23 @@ export default function Gameplay() {
     setPlayerNames(names);
     
     // Initialize scores
-    const initialScores: { [playerName: string]: { [hole: number]: number } } = {};
+    const initialTotalScores: { [playerName: string]: number } = {};
     const initialHoleScores: { [playerName: string]: number } = {};
     
     names.forEach((name: string) => {
-      initialScores[name] = {};
+      initialTotalScores[name] = 0;
       initialHoleScores[name] = 0;
     });
     
-    setScores(initialScores);
+    setTotalScores(initialTotalScores);
     setHoleScores(initialHoleScores);
   }, [navigate]);
 
   const saveScoresMutation = useMutation({
     mutationFn: (scoresData: any[]) => apiRequest("POST", `/api/games/${gameId}/scores`, scoresData),
     onSuccess: () => {
-      if (currentHole === 7) {
-        // Game completed, navigate to results
-        navigate(`/results/${gameId}`);
-      } else {
-        // Move to next hole
-        setCurrentHole(prev => prev + 1);
-        // Reset hole scores for next hole
-        const resetHoleScores: { [playerName: string]: number } = {};
-        playerNames.forEach(name => {
-          resetHoleScores[name] = 0;
-        });
-        setHoleScores(resetHoleScores);
-      }
+      // Game completed, navigate to results
+      navigate(`/results/${gameId}`);
     },
     onError: () => {
       toast({
@@ -108,11 +97,7 @@ export default function Gameplay() {
   };
 
   const calculateTotalScore = (playerName: string) => {
-    let total = 0;
-    for (let hole = 1; hole < currentHole; hole++) {
-      total += scores[playerName][hole] || 0;
-    }
-    return total;
+    return totalScores[playerName] || 0;
   };
 
   const handleNextHole = () => {
@@ -128,32 +113,43 @@ export default function Gameplay() {
       return;
     }
 
-    // Save scores for current hole
-    const scoresData = playerNames.map(playerName => ({
-      playerName,
-      hole: currentHole,
-      strokes: holeScores[playerName],
-    }));
-
-    // Update local scores state
-    const newScores = { ...scores };
+    // Update total scores with current hole scores
+    const updatedTotalScores = { ...totalScores };
     playerNames.forEach(playerName => {
-      newScores[playerName][currentHole] = holeScores[playerName];
+      updatedTotalScores[playerName] += holeScores[playerName];
     });
-    setScores(newScores);
+    setTotalScores(updatedTotalScores);
 
-    saveScoresMutation.mutate(scoresData);
+    if (currentHole === 7) {
+      // Game completed - save only total scores
+      const scoresData = playerNames.map(playerName => ({
+        playerName,
+        hole: 1, // Just using hole 1 as a placeholder since we only store total
+        strokes: updatedTotalScores[playerName],
+      }));
+
+      saveScoresMutation.mutate(scoresData);
+    } else {
+      // Move to next hole
+      setCurrentHole(prev => prev + 1);
+      // Reset hole scores for next hole
+      const resetHoleScores: { [playerName: string]: number } = {};
+      playerNames.forEach(name => {
+        resetHoleScores[name] = 0;
+      });
+      setHoleScores(resetHoleScores);
+    }
   };
 
   const handlePreviousHole = () => {
     if (currentHole > 1) {
       setCurrentHole(prev => prev - 1);
-      // Load previous hole scores
-      const prevHoleScores: { [playerName: string]: number } = {};
+      // Reset hole scores for previous hole
+      const resetHoleScores: { [playerName: string]: number } = {};
       playerNames.forEach(name => {
-        prevHoleScores[name] = scores[name][currentHole - 1] || 0;
+        resetHoleScores[name] = 0;
       });
-      setHoleScores(prevHoleScores);
+      setHoleScores(resetHoleScores);
     }
   };
 

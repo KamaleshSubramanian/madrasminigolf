@@ -1,9 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import AdminSidebar from "@/components/admin-sidebar";
-import { Gamepad2, IndianRupee, Users, Target } from "lucide-react";
+import { Gamepad2, IndianRupee, Users, Target, LogOut } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
@@ -22,6 +24,13 @@ export default function AdminDashboard() {
   const { data: recentGames, isLoading: gamesLoading } = useQuery({
     queryKey: ["/api/admin/recent-games"],
     enabled: !!user,
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/logout"),
+    onSuccess: () => {
+      navigate("/admin");
+    },
   });
 
   useEffect(() => {
@@ -47,12 +56,28 @@ export default function AdminDashboard() {
       <AdminSidebar />
       
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Dashboard Overview</h2>
-          <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
-        </div>
+        <header className="bg-white shadow-sm border-b border-gray-200 px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
+              <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
+            </div>
+            <Button
+              onClick={() => logoutMutation.mutate()}
+              variant="outline"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+              disabled={logoutMutation.isPending}
+            >
+              <LogOut className="h-4 w-4" />
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
+            </Button>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="flex-1 p-8">
         
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -62,7 +87,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Today's Games</p>
                   <p className="text-2xl font-bold text-gray-800">
-                    {statsLoading ? "..." : dashboardStats?.todayGames || 0}
+                    {statsLoading ? "..." : (dashboardStats as any)?.todayGames || 0}
                   </p>
                 </div>
                 <div className="p-3 bg-blue-100 rounded-full">
@@ -71,7 +96,7 @@ export default function AdminDashboard() {
               </div>
               <div className="mt-4 flex items-center text-sm">
                 <span className="text-green-600 font-medium">
-                  {dashboardStats?.gamesGrowth || "+0%"}
+                  {(dashboardStats as any)?.gamesGrowth || "+0%"}
                 </span>
                 <span className="text-gray-600 ml-1">from yesterday</span>
               </div>
@@ -84,7 +109,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Today's Revenue</p>
                   <p className="text-2xl font-bold text-gray-800">
-                    {statsLoading ? "..." : dashboardStats?.todayRevenue || "₹0"}
+                    {statsLoading ? "..." : (dashboardStats as any)?.todayRevenue || "₹0"}
                   </p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-full">
@@ -93,7 +118,7 @@ export default function AdminDashboard() {
               </div>
               <div className="mt-4 flex items-center text-sm">
                 <span className="text-green-600 font-medium">
-                  {dashboardStats?.revenueGrowth || "+0%"}
+                  {(dashboardStats as any)?.revenueGrowth || "+0%"}
                 </span>
                 <span className="text-gray-600 ml-1">from yesterday</span>
               </div>
@@ -106,7 +131,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Total Players</p>
                   <p className="text-2xl font-bold text-gray-800">
-                    {statsLoading ? "..." : dashboardStats?.totalPlayers || 0}
+                    {statsLoading ? "..." : (dashboardStats as any)?.totalPlayers || 0}
                   </p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-full">
@@ -115,7 +140,7 @@ export default function AdminDashboard() {
               </div>
               <div className="mt-4 flex items-center text-sm">
                 <span className="text-green-600 font-medium">
-                  +{dashboardStats?.totalPlayers || 0}
+                  +{(dashboardStats as any)?.totalPlayers || 0}
                 </span>
                 <span className="text-gray-600 ml-1">today</span>
               </div>
@@ -150,7 +175,7 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               {gamesLoading ? (
                 <div>Loading recent games...</div>
-              ) : recentGames && recentGames.length > 0 ? (
+              ) : recentGames && Array.isArray(recentGames) && recentGames.length > 0 ? (
                 recentGames.map((game: any, index: number) => (
                   <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
                     <div className="flex items-center">
@@ -174,6 +199,7 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
