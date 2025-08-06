@@ -6,6 +6,7 @@ import AdminSidebar from "@/components/admin-sidebar";
 import { Download } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Sales() {
   const [, navigate] = useLocation();
@@ -150,11 +151,11 @@ export default function Sales() {
           <Card className="shadow-md lg:col-span-2">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                {selectedPeriod === "day" ? "Hourly Breakdown" : 
-                 selectedPeriod === "week" ? "Daily Breakdown (This Week)" : 
-                 "Daily Breakdown (This Month)"}
+                {selectedPeriod === "day" ? "Hourly Revenue" : 
+                 selectedPeriod === "week" ? "Daily Revenue (This Week)" : 
+                 "Daily Revenue (This Month)"}
               </h3>
-              <div className="h-64 flex items-end justify-between space-x-1">
+              <div className="h-64">
                 {(selectedPeriod === "day" && hourlyLoading) || 
                  (selectedPeriod === "week" && weeklyLoading) || 
                  (selectedPeriod === "month" && monthlyLoading) ? (
@@ -165,25 +166,56 @@ export default function Sales() {
                   const currentData = selectedPeriod === "day" ? hourlyData : 
                                     selectedPeriod === "week" ? weeklyData : monthlyData;
                   
-                  return currentData && Array.isArray(currentData) && currentData.length > 0 ? (
-                    currentData.map((data: any, index: number) => {
-                      const maxRevenue = Math.max(...currentData.map((d: any) => parseFloat(d.revenue || "0")));
-                      const height = maxRevenue > 0 ? (parseFloat(data.revenue || "0") / maxRevenue) * 240 : 20;
-                      
-                      return (
-                        <div key={data.hour || data.day || index} className="flex flex-col items-center">
-                          <div 
-                            className="bg-golf-green rounded-t transition-all hover:opacity-80"
-                            style={{ height: `${Math.max(height, 20)}px`, width: "20px" }}
-                          />
-                          <span className="text-xs text-gray-600 mt-2">{data.label}</span>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="flex items-center justify-center w-full h-full text-gray-500">
-                      No data available
-                    </div>
+                  if (!currentData || !Array.isArray(currentData) || currentData.length === 0) {
+                    return (
+                      <div className="flex items-center justify-center w-full h-full text-gray-500">
+                        No data available
+                      </div>
+                    );
+                  }
+
+                  // Transform data for line chart
+                  const chartData = currentData.map((data: any) => ({
+                    name: selectedPeriod === "day" ? 
+                      `${data.hour}:00` : // Hour format for day
+                      data.label || `Day ${data.day}`, // Date label for week/month
+                    revenue: parseFloat(data.revenue || "0"),
+                    displayRevenue: `₹${parseFloat(data.revenue || "0").toLocaleString()}`
+                  }));
+                  
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                        <XAxis 
+                          dataKey="name" 
+                          stroke="#6b7280"
+                          fontSize={12}
+                        />
+                        <YAxis 
+                          stroke="#6b7280"
+                          fontSize={12}
+                          tickFormatter={(value) => `₹${value}`}
+                        />
+                        <Tooltip 
+                          formatter={(value: any) => [`₹${value}`, 'Revenue']}
+                          labelStyle={{ color: '#374151' }}
+                          contentStyle={{ 
+                            backgroundColor: '#f9fafb', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '6px'
+                          }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="revenue" 
+                          stroke="#16a34a" 
+                          strokeWidth={2}
+                          dot={{ fill: '#16a34a', strokeWidth: 2, r: 4 }}
+                          activeDot={{ r: 6, stroke: '#16a34a', strokeWidth: 2, fill: '#ffffff' }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   );
                 })()}
               </div>
