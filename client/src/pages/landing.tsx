@@ -17,7 +17,7 @@ export default function Landing() {
         transition={{ delay: 0.3, duration: 0.5 }}
       >
         <Button 
-          onClick={() => navigate("/admin/login")}
+          onClick={() => navigate("/admin")}
           variant="outline"
           size="sm"
           className="bg-white/80 backdrop-blur-sm border-golf-green text-golf-green hover:bg-golf-green hover:text-white transition-all duration-300"
