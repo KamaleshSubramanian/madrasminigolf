@@ -189,29 +189,7 @@ export default function Gameplay() {
           ))}
         </div>
         
-        {/* Running Totals (from hole 2 onwards) */}
-        {currentHole > 1 && (
-          <Card className="mb-6 bg-gradient-to-r from-golf-light to-golf-green text-white shadow-lg">
-            <CardContent className="p-4">
-              <h3 className="text-lg font-bold mb-3 text-center">Running Totals</h3>
-              <div className="grid grid-cols-1 gap-2">
-                {playerNames.map((playerName, index) => (
-                  <div key={`total-${index}-${playerName}`} className="flex justify-between items-center bg-white/20 rounded-lg p-3">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-white text-golf-green rounded-full flex items-center justify-center font-bold mr-3 text-sm">
-                        {index + 1}
-                      </div>
-                      <span className="font-medium">{playerName}</span>
-                    </div>
-                    <div className="text-xl font-bold">
-                      {calculateTotalScore(playerName)} strokes
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
 
         {/* Player Scoring */}
         <div className="space-y-6">
