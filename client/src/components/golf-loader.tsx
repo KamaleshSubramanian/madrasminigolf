@@ -4,9 +4,10 @@ interface GolfLoaderProps {
   text?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
+  overlay?: boolean;
 }
 
-export default function GolfLoader({ text = "Loading...", size = "md", className = "" }: GolfLoaderProps) {
+export default function GolfLoader({ text = "Loading...", size = "md", className = "", overlay = false }: GolfLoaderProps) {
   const sizeClasses = {
     sm: "w-8 h-8",
     md: "w-12 h-12", 
@@ -25,8 +26,8 @@ export default function GolfLoader({ text = "Loading...", size = "md", className
     lg: "text-lg"
   };
 
-  return (
-    <div className={`flex flex-col items-center justify-center space-y-4 ${className}`}>
+  const loaderContent = (
+    <div className={`flex flex-col items-center justify-center space-y-4 ${overlay ? 'relative z-50' : ''} ${className}`}>
       {/* Golf Ball Animation */}
       <div className={`relative ${sizeClasses[size]}`}>
         {/* Golf Course/Hole */}
@@ -113,4 +114,14 @@ export default function GolfLoader({ text = "Loading...", size = "md", className
       </div>
     </div>
   );
+
+  if (overlay) {
+    return (
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+        {loaderContent}
+      </div>
+    );
+  }
+
+  return loaderContent;
 }

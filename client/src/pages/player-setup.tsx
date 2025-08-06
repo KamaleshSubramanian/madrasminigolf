@@ -100,6 +100,9 @@ export default function PlayerSetup() {
 
   return (
     <div className="min-h-screen bg-golf-cream p-4">
+      {createGameMutation.isPending && (
+        <GolfLoader text="Starting game" size="lg" overlay={true} />
+      )}
       <div className="max-w-md mx-auto pt-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -165,11 +168,7 @@ export default function PlayerSetup() {
               disabled={createGameMutation.isPending}
               className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3 mt-6"
             >
-              {createGameMutation.isPending ? (
-                <div className="flex items-center justify-center">
-                  <GolfLoader text="Starting game" size="sm" className="text-white" />
-                </div>
-              ) : "Start Playing"}
+              {createGameMutation.isPending ? "Starting Game..." : "Start Playing"}
               <Play className="ml-2 h-4 w-4" />
             </Button>
           </CardContent>

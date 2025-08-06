@@ -115,11 +115,7 @@ export default function Pricing() {
   };
 
   if (userLoading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <GolfLoader text="Loading admin panel" size="lg" />
-      </div>
-    );
+    return <GolfLoader text="Loading admin panel" size="lg" overlay={true} />;
   }
 
   if (!user) {

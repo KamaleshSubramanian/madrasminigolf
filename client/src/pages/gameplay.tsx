@@ -155,15 +155,14 @@ export default function Gameplay() {
   };
 
   if (!playerNames.length) {
-    return (
-      <div className="min-h-screen bg-golf-cream flex items-center justify-center">
-        <GolfLoader text="Loading game" size="lg" />
-      </div>
-    );
+    return <GolfLoader text="Loading game" size="lg" overlay={true} />;
   }
 
   return (
     <div className="min-h-screen bg-golf-cream p-4">
+      {saveScoresMutation.isPending && (
+        <GolfLoader text="Saving game scores" size="lg" overlay={true} />
+      )}
       <div className="max-w-md mx-auto pt-8">
         {/* Header with Hole Info */}
         <div className="text-center mb-6">
@@ -285,11 +284,7 @@ export default function Gameplay() {
             disabled={saveScoresMutation.isPending}
             className="flex-1 bg-golf-green hover:bg-golf-light text-white font-bold py-3"
           >
-            {saveScoresMutation.isPending ? (
-              <div className="flex items-center justify-center">
-                <GolfLoader text="Saving game" size="sm" className="text-white" />
-              </div>
-            ) : currentHole === 7 ? "Finish Game" : "Next Hole"}
+            {saveScoresMutation.isPending ? "Saving..." : currentHole === 7 ? "Finish Game" : "Next Hole"}
             {currentHole === 7 ? <Flag className="ml-2 h-4 w-4" /> : <ArrowRight className="ml-2 h-4 w-4" />}
           </Button>
         </div>

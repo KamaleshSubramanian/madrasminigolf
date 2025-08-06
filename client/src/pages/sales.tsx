@@ -60,11 +60,7 @@ export default function Sales() {
   }, [error, userLoading, navigate]);
 
   if (userLoading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <GolfLoader text="Loading sales data" size="lg" />
-      </div>
-    );
+    return <GolfLoader text="Loading sales data" size="lg" overlay={true} />;
   }
 
   if (!user) {

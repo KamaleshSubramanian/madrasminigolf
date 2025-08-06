@@ -64,6 +64,9 @@ export default function Registration() {
 
   return (
     <div className="min-h-screen bg-golf-cream p-4">
+      {registerMutation.isPending && (
+        <GolfLoader text="Registering player" size="lg" overlay={true} />
+      )}
       <div className="max-w-md mx-auto pt-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -171,11 +174,7 @@ export default function Registration() {
                   className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3"
                   disabled={registerMutation.isPending}
                 >
-                  {registerMutation.isPending ? (
-                    <div className="flex items-center justify-center">
-                      <GolfLoader text="Registering" size="sm" className="text-white" />
-                    </div>
-                  ) : "Continue to Player Setup"}
+                  {registerMutation.isPending ? "Registering..." : "Continue to Player Setup"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </form>

@@ -41,11 +41,7 @@ export default function AdminDashboard() {
   }, [error, userLoading, navigate]);
 
   if (userLoading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <GolfLoader text="Loading dashboard" size="lg" />
-      </div>
-    );
+    return <GolfLoader text="Loading dashboard" size="lg" overlay={true} />;
   }
 
   if (!user) {
