@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import bcrypt from "bcryptjs";
 import { insertPlayerSchema, insertScoreSchema, insertPricingSchema } from "@shared/schema";
 import { z } from "zod";
+import session from "express-session";
+import ConnectPgSimple from "connect-pg-simple";
+import { pool } from "./db";
 
 // Custom game creation schema without totalCost
 const createGameSchema = z.object({
@@ -21,6 +24,24 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup session middleware
+  const PgSession = ConnectPgSimple(session);
+  
+  app.use(session({
+    store: new PgSession({
+      pool: pool,
+      tableName: 'session',
+    }),
+    secret: process.env.SESSION_SECRET || 'your-secret-key-here',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set to true in production with HTTPS
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    },
+  }));
+
   // Initialize default admin user and pricing if not exists
   const initializeDefaults = async () => {
     try {
