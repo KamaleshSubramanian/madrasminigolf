@@ -338,6 +338,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Weekly sales breakdown (7 days)
+  app.get("/api/admin/weekly-sales", requireAuth, async (req, res) => {
+    try {
+      const today = new Date();
+      const weeklyData = [];
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        const stats = await storage.getSalesStats(startOfDay, endOfDay);
+        
+        weeklyData.push({
+          day: i,
+          games: stats.totalGames,
+          revenue: stats.totalRevenue,
+          label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        });
+      }
+
+      res.json(weeklyData);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Monthly sales breakdown (30 days)
+  app.get("/api/admin/monthly-sales", requireAuth, async (req, res) => {
+    try {
+      const today = new Date();
+      const monthlyData = [];
+      
+      // Get last 30 days, group by week
+      for (let week = 3; week >= 0; week--) {
+        const weekStart = new Date(today);
+        weekStart.setDate(weekStart.getDate() - (week * 7 + 6));
+        weekStart.setHours(0, 0, 0, 0);
+        
+        const weekEnd = new Date(today);
+        weekEnd.setDate(weekEnd.getDate() - (week * 7));
+        weekEnd.setHours(23, 59, 59, 999);
+        
+        const stats = await storage.getSalesStats(weekStart, weekEnd);
+        
+        monthlyData.push({
+          week: 3 - week,
+          games: stats.totalGames,
+          revenue: stats.totalRevenue,
+          label: `Week ${4 - week}`,
+        });
+      }
+
+      res.json(monthlyData);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Update pricing
   app.post("/api/admin/pricing", requireAuth, async (req, res) => {
     try {

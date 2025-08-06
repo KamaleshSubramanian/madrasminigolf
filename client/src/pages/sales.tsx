@@ -27,6 +27,16 @@ export default function Sales() {
     enabled: !!user && selectedPeriod === "day",
   });
 
+  const { data: weeklyData, isLoading: weeklyLoading } = useQuery({
+    queryKey: ["/api/admin/weekly-sales"],
+    enabled: !!user && selectedPeriod === "week",
+  });
+
+  const { data: monthlyData, isLoading: monthlyLoading } = useQuery({
+    queryKey: ["/api/admin/monthly-sales"],
+    enabled: !!user && selectedPeriod === "month",
+  });
+
   const { data: transactions, isLoading: transactionsLoading } = useQuery({
     queryKey: ["/api/admin/transactions"],
     enabled: !!user,
@@ -52,7 +62,7 @@ export default function Sales() {
 
   const handleExport = () => {
     // Simple CSV export functionality
-    if (transactions) {
+    if (transactions && Array.isArray(transactions)) {
       const csvContent = "data:text/csv;charset=utf-8," 
         + "Time,Player,Players,Cost,Type\n"
         + transactions.map((t: any) => 
@@ -111,48 +121,57 @@ export default function Sales() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Games:</span>
                   <span className="font-bold text-golf-green">
-                    {salesLoading ? "..." : salesData?.totalGames || 0}
+                    {salesLoading ? "..." : (salesData as any)?.totalGames || 0}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Players:</span>
                   <span className="font-bold text-golf-green">
-                    {salesLoading ? "..." : salesData?.totalPlayers || 0}
+                    {salesLoading ? "..." : (salesData as any)?.totalPlayers || 0}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Revenue:</span>
                   <span className="font-bold text-golf-green">
-                    {salesLoading ? "..." : salesData?.totalRevenue || "₹0"}
+                    {salesLoading ? "..." : (salesData as any)?.totalRevenue || "₹0"}
                   </span>
                 </div>
                 <div className="flex justify-between border-t pt-4">
                   <span className="text-gray-600">Avg per Game:</span>
                   <span className="font-bold text-gray-800">
-                    {salesLoading ? "..." : salesData?.avgPerGame || "₹0"}
+                    {salesLoading ? "..." : (salesData as any)?.avgPerGame || "₹0"}
                   </span>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          {/* Hourly Breakdown (only for day view) */}
-          {selectedPeriod === "day" && (
-            <Card className="shadow-md lg:col-span-2">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Hourly Breakdown</h3>
-                <div className="h-64 flex items-end justify-between space-x-1">
-                  {hourlyLoading ? (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <div>Loading chart...</div>
-                    </div>
-                  ) : hourlyData && hourlyData.length > 0 ? (
-                    hourlyData.map((data: any) => {
-                      const maxRevenue = Math.max(...hourlyData.map((d: any) => parseFloat(d.revenue || "0")));
+          {/* Charts - Different for each period */}
+          <Card className="shadow-md lg:col-span-2">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                {selectedPeriod === "day" ? "Hourly Breakdown" : 
+                 selectedPeriod === "week" ? "Daily Breakdown (This Week)" : 
+                 "Daily Breakdown (This Month)"}
+              </h3>
+              <div className="h-64 flex items-end justify-between space-x-1">
+                {(selectedPeriod === "day" && hourlyLoading) || 
+                 (selectedPeriod === "week" && weeklyLoading) || 
+                 (selectedPeriod === "month" && monthlyLoading) ? (
+                  <div className="flex items-center justify-center w-full h-full">
+                    <div>Loading chart...</div>
+                  </div>
+                ) : (() => {
+                  const currentData = selectedPeriod === "day" ? hourlyData : 
+                                    selectedPeriod === "week" ? weeklyData : monthlyData;
+                  
+                  return currentData && Array.isArray(currentData) && currentData.length > 0 ? (
+                    currentData.map((data: any, index: number) => {
+                      const maxRevenue = Math.max(...currentData.map((d: any) => parseFloat(d.revenue || "0")));
                       const height = maxRevenue > 0 ? (parseFloat(data.revenue || "0") / maxRevenue) * 240 : 20;
                       
                       return (
-                        <div key={data.hour} className="flex flex-col items-center">
+                        <div key={data.hour || data.day || index} className="flex flex-col items-center">
                           <div 
                             className="bg-golf-green rounded-t transition-all hover:opacity-80"
                             style={{ height: `${Math.max(height, 20)}px`, width: "20px" }}
@@ -165,11 +184,11 @@ export default function Sales() {
                     <div className="flex items-center justify-center w-full h-full text-gray-500">
                       No data available
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  );
+                })()}
+              </div>
+            </CardContent>
+          </Card>
         </div>
         
         {/* Detailed Transaction List */}
@@ -203,7 +222,7 @@ export default function Sales() {
                     <tr>
                       <td colSpan={5} className="px-6 py-4 text-center">Loading...</td>
                     </tr>
-                  ) : transactions && transactions.length > 0 ? (
+                  ) : transactions && Array.isArray(transactions) && transactions.length > 0 ? (
                     transactions.map((transaction: any, index: number) => (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.time}</td>
