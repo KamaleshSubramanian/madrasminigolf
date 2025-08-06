@@ -49,7 +49,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
   ];
 
   return (
-    <div className={`w-64 bg-white shadow-lg ${className}`}>
+    <div className={`fixed left-0 top-0 h-screen w-64 bg-white shadow-lg z-30 ${className}`}>
       <div className="p-6 border-b">
         <h1 className="text-xl text-golf-green font-bold">Madras Mini Golf</h1>
         <p className="text-sm text-gray-600">Admin Dashboard</p>
