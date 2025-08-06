@@ -2,13 +2,31 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import GolfAnimation from "@/components/golf-animation";
 import { motion } from "framer-motion";
-import { Play, QrCode } from "lucide-react";
+import { Play, QrCode, Settings } from "lucide-react";
 
 export default function Landing() {
   const [, navigate] = useLocation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-golf-cream to-green-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-golf-cream to-green-100 flex items-center justify-center p-4 relative">
+      {/* Admin Toggle Button */}
+      <motion.div 
+        className="absolute top-4 right-4"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <Button 
+          onClick={() => navigate("/admin/login")}
+          variant="outline"
+          size="sm"
+          className="bg-white/80 backdrop-blur-sm border-golf-green text-golf-green hover:bg-golf-green hover:text-white transition-all duration-300"
+        >
+          <Settings className="mr-2 h-4 w-4" />
+          Admin
+        </Button>
+      </motion.div>
+
       <motion.div 
         className="text-center"
         initial={{ opacity: 0, y: 20 }}
