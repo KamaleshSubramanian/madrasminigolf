@@ -7,6 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, ArrowRight, Flag, Plus, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import GolfLoader from "@/components/golf-loader";
 
 export default function Gameplay() {
   const { gameId } = useParams();
@@ -154,7 +155,11 @@ export default function Gameplay() {
   };
 
   if (!playerNames.length) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-golf-cream flex items-center justify-center">
+        <GolfLoader text="Loading game" size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -280,7 +285,11 @@ export default function Gameplay() {
             disabled={saveScoresMutation.isPending}
             className="flex-1 bg-golf-green hover:bg-golf-light text-white font-bold py-3"
           >
-            {saveScoresMutation.isPending ? "Saving..." : currentHole === 7 ? "Finish Game" : "Next Hole"}
+            {saveScoresMutation.isPending ? (
+              <div className="flex items-center justify-center">
+                <GolfLoader text="Saving game" size="sm" className="text-white" />
+              </div>
+            ) : currentHole === 7 ? "Finish Game" : "Next Hole"}
             {currentHole === 7 ? <Flag className="ml-2 h-4 w-4" /> : <ArrowRight className="ml-2 h-4 w-4" />}
           </Button>
         </div>

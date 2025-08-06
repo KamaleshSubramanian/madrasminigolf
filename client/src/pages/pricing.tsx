@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AdminSidebar from "@/components/admin-sidebar";
-import { Calendar, CalendarDays, Save, RotateCcw, Calculator } from "lucide-react";
+import { Calendar, CalendarDays, Save, RotateCcw, Calculator, LogOut } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -14,6 +14,7 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import GolfLoader from "@/components/golf-loader";
 
 const pricingFormSchema = insertPricingSchema.omit({ updatedBy: true });
 type PricingForm = z.infer<typeof pricingFormSchema>;
@@ -22,6 +23,25 @@ export default function Pricing() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const handleLogout = () => {
+    fetch("/api/admin/logout", { method: "POST" })
+      .then(() => {
+        queryClient.clear();
+        navigate("/admin");
+        toast({
+          title: "Logged out successfully",
+          description: "You have been logged out of the admin panel.",
+        });
+      })
+      .catch(() => {
+        toast({
+          title: "Logout failed",
+          description: "There was an error logging out.",
+          variant: "destructive",
+        });
+      });
+  };
 
   // Check authentication
   const { data: user, isLoading: userLoading, error } = useQuery({
@@ -54,10 +74,10 @@ export default function Pricing() {
   }, [error, userLoading, navigate]);
 
   useEffect(() => {
-    if (currentPricing) {
+    if (currentPricing && typeof currentPricing === 'object' && 'weekdayPrice' in currentPricing) {
       form.reset({
-        weekdayPrice: currentPricing.weekdayPrice,
-        weekendPrice: currentPricing.weekendPrice,
+        weekdayPrice: (currentPricing as any).weekdayPrice,
+        weekendPrice: (currentPricing as any).weekendPrice,
       });
     }
   }, [currentPricing, form]);
@@ -86,10 +106,10 @@ export default function Pricing() {
   };
 
   const handleReset = () => {
-    if (currentPricing) {
+    if (currentPricing && typeof currentPricing === 'object' && 'weekdayPrice' in currentPricing) {
       form.reset({
-        weekdayPrice: currentPricing.weekdayPrice,
-        weekendPrice: currentPricing.weekendPrice,
+        weekdayPrice: (currentPricing as any).weekdayPrice,
+        weekendPrice: (currentPricing as any).weekendPrice,
       });
     }
   };
@@ -97,7 +117,7 @@ export default function Pricing() {
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div>Loading...</div>
+        <GolfLoader text="Loading admin panel" size="lg" />
       </div>
     );
   }
@@ -112,8 +132,8 @@ export default function Pricing() {
   const avgGamesPerDay = 24; // Estimated
   const avgPlayersPerGame = 3; // Estimated
   const monthlyRevenue = ((weekdayPrice * 22) + (weekendPrice * 8)) * avgGamesPerDay * avgPlayersPerGame;
-  const currentMonthlyRevenue = currentPricing 
-    ? ((parseFloat(currentPricing.weekdayPrice) * 22) + (parseFloat(currentPricing.weekendPrice) * 8)) * avgGamesPerDay * avgPlayersPerGame
+  const currentMonthlyRevenue = currentPricing && typeof currentPricing === 'object' && 'weekdayPrice' in currentPricing
+    ? ((parseFloat((currentPricing as any).weekdayPrice) * 22) + (parseFloat((currentPricing as any).weekendPrice) * 8)) * avgGamesPerDay * avgPlayersPerGame
     : 0;
   const increaseImpact = monthlyRevenue - currentMonthlyRevenue;
 
@@ -122,12 +142,24 @@ export default function Pricing() {
       <AdminSidebar />
       
       {/* Main Content */}
-      <div className="ml-64 p-8">
+      <div className="ml-64 flex flex-col">
         {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Pricing Management</h2>
-          <p className="text-gray-600">Set and manage player pricing for different days</p>
+        <div className="bg-white shadow-sm border-b px-8 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Pricing Management</h1>
+            <p className="text-gray-600">Set and manage player pricing for different days</p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-gray-600 hover:text-golf-green"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
         </div>
+
+        <div className="p-8">
         
         {/* Current Pricing Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -142,14 +174,14 @@ export default function Pricing() {
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-golf-green mb-2">
-                  {pricingLoading ? "..." : `₹${currentPricing?.weekdayPrice || "60.00"}`}
+                  {pricingLoading ? "..." : `₹${currentPricing && typeof currentPricing === 'object' && 'weekdayPrice' in currentPricing ? (currentPricing as any).weekdayPrice : "60.00"}`}
                 </div>
                 <p className="text-gray-600">Per Player</p>
               </div>
               <div className="mt-4 text-sm text-gray-600">
                 <p><strong>Days:</strong> Monday - Friday</p>
                 <p><strong>Last Updated:</strong> {
-                  currentPricing ? new Date(currentPricing.updatedAt).toLocaleDateString() : "Not set"
+                  currentPricing && typeof currentPricing === 'object' && 'updatedAt' in currentPricing ? new Date((currentPricing as any).updatedAt).toLocaleDateString() : "Not set"
                 }</p>
               </div>
             </CardContent>
@@ -166,14 +198,14 @@ export default function Pricing() {
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-golf-green mb-2">
-                  {pricingLoading ? "..." : `₹${currentPricing?.weekendPrice || "80.00"}`}
+                  {pricingLoading ? "..." : `₹${currentPricing && typeof currentPricing === 'object' && 'weekendPrice' in currentPricing ? (currentPricing as any).weekendPrice : "80.00"}`}
                 </div>
                 <p className="text-gray-600">Per Player</p>
               </div>
               <div className="mt-4 text-sm text-gray-600">
                 <p><strong>Days:</strong> Saturday - Sunday</p>
                 <p><strong>Last Updated:</strong> {
-                  currentPricing ? new Date(currentPricing.updatedAt).toLocaleDateString() : "Not set"
+                  currentPricing && typeof currentPricing === 'object' && 'updatedAt' in currentPricing ? new Date((currentPricing as any).updatedAt).toLocaleDateString() : "Not set"
                 }</p>
               </div>
             </CardContent>
@@ -285,9 +317,13 @@ export default function Pricing() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {historyLoading ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center">Loading...</td>
+                      <td colSpan={5} className="px-6 py-4 text-center">
+                        <div className="flex justify-center py-4">
+                          <GolfLoader text="Loading history" size="sm" />
+                        </div>
+                      </td>
                     </tr>
-                  ) : pricingHistory && pricingHistory.length > 0 ? (
+                  ) : pricingHistory && Array.isArray(pricingHistory) && pricingHistory.length > 0 ? (
                     pricingHistory.map((entry: any, index: number) => (
                       <tr key={entry.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -349,6 +385,7 @@ export default function Pricing() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

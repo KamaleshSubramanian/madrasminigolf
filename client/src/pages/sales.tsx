@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import GolfLoader from "@/components/golf-loader";
 import AdminSidebar from "@/components/admin-sidebar";
 import { Download, LogOut, TrendingUp, BarChart3 } from "lucide-react";
 import { useLocation } from "wouter";
@@ -61,7 +62,7 @@ export default function Sales() {
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div>Loading...</div>
+        <GolfLoader text="Loading sales data" size="lg" />
       </div>
     );
   }
@@ -205,7 +206,7 @@ export default function Sales() {
                  (selectedPeriod === "week" && weeklyLoading) || 
                  (selectedPeriod === "month" && monthlyLoading) ? (
                   <div className="flex items-center justify-center w-full h-full">
-                    <div>Loading chart...</div>
+                    <GolfLoader text="Loading chart data" size="md" />
                   </div>
                 ) : (() => {
                   const currentData = selectedPeriod === "today" ? hourlyData : 

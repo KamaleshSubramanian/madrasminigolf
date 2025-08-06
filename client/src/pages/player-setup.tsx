@@ -8,6 +8,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Play, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import GolfLoader from "@/components/golf-loader";
 
 export default function PlayerSetup() {
   const [, navigate] = useLocation();
@@ -164,7 +165,11 @@ export default function PlayerSetup() {
               disabled={createGameMutation.isPending}
               className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3 mt-6"
             >
-              {createGameMutation.isPending ? "Starting Game..." : "Start Playing"}
+              {createGameMutation.isPending ? (
+                <div className="flex items-center justify-center">
+                  <GolfLoader text="Starting game" size="sm" className="text-white" />
+                </div>
+              ) : "Start Playing"}
               <Play className="ml-2 h-4 w-4" />
             </Button>
           </CardContent>

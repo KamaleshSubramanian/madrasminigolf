@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import GolfLoader from "@/components/golf-loader";
 import AdminSidebar from "@/components/admin-sidebar";
 import { Gamepad2, IndianRupee, Users, Target, LogOut } from "lucide-react";
 import { useLocation } from "wouter";
@@ -42,7 +43,7 @@ export default function AdminDashboard() {
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div>Loading...</div>
+        <GolfLoader text="Loading dashboard" size="lg" />
       </div>
     );
   }
@@ -174,7 +175,9 @@ export default function AdminDashboard() {
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Games</h3>
             <div className="space-y-4">
               {gamesLoading ? (
-                <div>Loading recent games...</div>
+                <div className="flex justify-center py-8">
+                  <GolfLoader text="Loading recent games" size="sm" />
+                </div>
               ) : recentGames && Array.isArray(recentGames) && recentGames.length > 0 ? (
                 recentGames.map((game: any, index: number) => (
                   <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">

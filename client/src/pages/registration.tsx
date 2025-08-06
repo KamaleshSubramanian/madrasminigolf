@@ -15,6 +15,7 @@ import { z } from "zod";
 import { ArrowRight, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import GolfLoader from "@/components/golf-loader";
 
 const registrationSchema = insertPlayerSchema.extend({
   consent: z.boolean().refine(val => val === true, {
@@ -170,7 +171,11 @@ export default function Registration() {
                   className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3"
                   disabled={registerMutation.isPending}
                 >
-                  {registerMutation.isPending ? "Registering..." : "Continue to Player Setup"}
+                  {registerMutation.isPending ? (
+                    <div className="flex items-center justify-center">
+                      <GolfLoader text="Registering" size="sm" className="text-white" />
+                    </div>
+                  ) : "Continue to Player Setup"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </form>
