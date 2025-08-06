@@ -68,7 +68,22 @@ export default function Gameplay() {
   };
 
   const handleManualScore = (playerName: string, strokes: string) => {
+    // Allow empty string to clear the field
+    if (strokes === "") {
+      setHoleScores(prev => ({
+        ...prev,
+        [playerName]: 0,
+      }));
+      return;
+    }
+    
+    // Only allow numeric characters
+    if (!/^\d+$/.test(strokes)) {
+      return;
+    }
+    
     const strokeCount = parseInt(strokes);
+    // Validate range 7-20
     if (strokeCount >= 7 && strokeCount <= 20) {
       setHoleScores(prev => ({
         ...prev,
@@ -80,15 +95,16 @@ export default function Gameplay() {
   const incrementScore = (playerName: string) => {
     const currentScore = holeScores[playerName] || 7;
     if (currentScore < 20) {
+      const newScore = currentScore < 7 ? 7 : currentScore + 1;
       setHoleScores(prev => ({
         ...prev,
-        [playerName]: currentScore + 1,
+        [playerName]: newScore,
       }));
     }
   };
 
   const decrementScore = (playerName: string) => {
-    const currentScore = holeScores[playerName] || 8;
+    const currentScore = holeScores[playerName] || 7;
     if (currentScore > 7) {
       setHoleScores(prev => ({
         ...prev,
@@ -234,12 +250,10 @@ export default function Gameplay() {
                       <Minus className="h-3 w-3" />
                     </Button>
                     <Input
-                      type="number"
-                      min="7"
-                      max="20"
+                      type="text"
                       className="w-12 h-10 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none text-sm font-bold"
                       onChange={(e) => handleManualScore(playerName, e.target.value)}
-                      value={holeScores[playerName] > 6 ? holeScores[playerName] : ""}
+                      value={holeScores[playerName] > 6 ? holeScores[playerName].toString() : ""}
                       placeholder="7+"
                     />
                     <Button
