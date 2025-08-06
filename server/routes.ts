@@ -258,16 +258,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const games = await storage.getGamesByDateRange(startOfDay, endOfDay);
       
-      const recentGames = games.slice(0, 10).map(game => ({
-        id: game.id,
-        playerCount: game.playerCount,
-        leadPlayer: game.playerNames[0] || "Unknown",
-        cost: `₹${parseFloat(game.totalCost).toLocaleString()}`,
-        time: new Date(game.completedAt).toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit', 
-          hour12: true 
-        }),
+      const recentGames = await Promise.all(games.slice(0, 10).map(async game => {
+        const player = await storage.getPlayer(game.playerId);
+        return {
+          id: game.id,
+          playerCount: game.playerCount,
+          leadPlayer: player?.name || "Unknown",
+          cost: `₹${parseFloat(game.totalCost).toLocaleString()}`,
+          time: new Date(game.completedAt).toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            hour12: true 
+          }),
+        };
       }));
 
       res.json(recentGames);

@@ -39,6 +39,7 @@ export interface IStorage {
   getWeeklySales(startDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }>;
   getMonthlySales(startDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }>;
   getHourlySales(date: Date): Promise<Array<{ hour: number; games: number; revenue: string }>>;
+  getSalesStats(startDate: Date, endDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -238,6 +239,26 @@ export class DatabaseStorage implements IStorage {
       games: r.games,
       revenue: r.revenue || "0"
     }));
+  }
+
+  async getSalesStats(startDate: Date, endDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }> {
+    const [result] = await db
+      .select({
+        totalGames: sql<number>`count(*)::int`,
+        totalRevenue: sql<string>`sum(${games.totalCost})::text`,
+        totalPlayers: sql<number>`sum(${games.playerCount})::int`,
+      })
+      .from(games)
+      .where(and(
+        gte(games.completedAt, startDate),
+        lte(games.completedAt, endDate)
+      ));
+
+    return {
+      totalGames: result?.totalGames || 0,
+      totalRevenue: result?.totalRevenue || "0",
+      totalPlayers: result?.totalPlayers || 0,
+    };
   }
 }
 
