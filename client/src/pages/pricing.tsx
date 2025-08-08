@@ -356,33 +356,7 @@ export default function Pricing() {
           </CardContent>
         </Card>
         
-        {/* Revenue Impact Calculator */}
-        <Card className="bg-gradient-to-r from-golf-green to-golf-light text-white shadow-md">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4 flex items-center">
-              <Calculator className="mr-2 h-5 w-5" />
-              Revenue Impact Calculator
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <p className="text-sm opacity-90">Daily Average Games</p>
-                <p className="text-2xl font-bold">{avgGamesPerDay}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm opacity-90">Estimated Monthly Revenue</p>
-                <p className="text-2xl font-bold">₹{monthlyRevenue.toLocaleString()}</p>
-              </div>
-              {increaseImpact !== 0 && (
-                <div className="text-center">
-                  <p className="text-sm opacity-90">Price Change Impact</p>
-                  <p className={`text-2xl font-bold ${increaseImpact >= 0 ? 'text-yellow-300' : 'text-red-300'}`}>
-                    {increaseImpact >= 0 ? '+' : ''}₹{increaseImpact.toLocaleString()}
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+
         </div>
       </div>
     </div>
