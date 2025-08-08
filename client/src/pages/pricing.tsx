@@ -372,12 +372,14 @@ export default function Pricing() {
                 <p className="text-sm opacity-90">Estimated Monthly Revenue</p>
                 <p className="text-2xl font-bold">₹{monthlyRevenue.toLocaleString()}</p>
               </div>
-              <div className="text-center">
-                <p className="text-sm opacity-90">Price Change Impact</p>
-                <p className={`text-2xl font-bold ${increaseImpact >= 0 ? 'text-yellow-300' : 'text-red-300'}`}>
-                  {increaseImpact >= 0 ? '+' : ''}₹{increaseImpact.toLocaleString()}
-                </p>
-              </div>
+              {increaseImpact !== 0 && (
+                <div className="text-center">
+                  <p className="text-sm opacity-90">Price Change Impact</p>
+                  <p className={`text-2xl font-bold ${increaseImpact >= 0 ? 'text-yellow-300' : 'text-red-300'}`}>
+                    {increaseImpact >= 0 ? '+' : ''}₹{increaseImpact.toLocaleString()}
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

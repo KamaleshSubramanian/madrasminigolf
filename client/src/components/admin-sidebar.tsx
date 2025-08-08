@@ -4,41 +4,15 @@ import {
   TrendingUp, 
   Tag, 
   Users, 
-  Settings, 
-  LogOut 
+  Settings
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 
 interface AdminSidebarProps {
   className?: string;
 }
 
 export default function AdminSidebar({ className }: AdminSidebarProps) {
-  const [location, navigate] = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const logoutMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/admin/logout"),
-    onSuccess: () => {
-      queryClient.clear();
-      navigate("/admin");
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of the admin panel.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Logout failed",
-        description: "There was an error logging out.",
-        variant: "destructive",
-      });
-    },
-  });
+  const [location] = useLocation();
 
   const menuItems = [
     { path: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -75,17 +49,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
         })}
       </nav>
       
-      <div className="absolute bottom-6 left-6">
-        <Button
-          variant="ghost"
-          onClick={() => logoutMutation.mutate()}
-          disabled={logoutMutation.isPending}
-          className="flex items-center text-gray-600 hover:text-golf-green"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          {logoutMutation.isPending ? "Logging out..." : "Logout"}
-        </Button>
-      </div>
+
     </div>
   );
 }
