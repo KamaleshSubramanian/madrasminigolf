@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -165,9 +166,26 @@ export default function AdminLogin() {
                     </FormItem>
                   )}
                 />
-                <a href="#" className="text-sm text-golf-green hover:underline">
-                  Forgot password?
-                </a>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="text-sm text-golf-green hover:underline">
+                      Forgot password?
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Password Reset</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        For security reasons, password reset must be done manually by the system administrator. 
+                        Please contact your IT administrator or the person who set up this mini golf system 
+                        to reset your password.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogAction>Understood</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
               
               <Button 
@@ -176,7 +194,7 @@ export default function AdminLogin() {
                 disabled={loginMutation.isPending}
               >
                 <LogIn className="mr-2 h-4 w-4" />
-                {loginMutation.isPending ? "Signing In..." : "Sign In"}
+                {loginMutation.isPending ? "Logging In..." : "Login"}
               </Button>
             </form>
           </Form>
