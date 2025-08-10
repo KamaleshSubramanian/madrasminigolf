@@ -211,13 +211,6 @@ export default function Sales() {
                                     selectedPeriod === "week" ? weeklyData : monthlyData;
                   
                   if (!currentData || !Array.isArray(currentData) || currentData.length === 0) {
-                    console.log("Chart data debug:", {
-                      selectedPeriod,
-                      currentData,
-                      hourlyData,
-                      weeklyData,
-                      monthlyData
-                    });
                     return (
                       <div className="flex items-center justify-center w-full h-full text-gray-500">
                         No data available for {selectedPeriod}
@@ -226,13 +219,25 @@ export default function Sales() {
                   }
 
                   // Transform data for chart
-                  const chartData = currentData.map((data: any) => ({
-                    name: selectedPeriod === "today" ? 
-                      `${data.hour}:00` : // Hour format for today
-                      data.label || `Day ${data.day}`, // Date label for week/month
-                    revenue: parseFloat(data.revenue || "0"),
-                    displayRevenue: `₹${parseFloat(data.revenue || "0").toLocaleString()}`
-                  }));
+                  const chartData = currentData.map((data: any) => {
+                    let revenue = 0;
+                    if (selectedPeriod === "today") {
+                      // For hourly data, revenue might include ₹ symbol
+                      const revenueStr = data.revenue || "0";
+                      revenue = parseFloat(revenueStr.toString().replace(/[₹,]/g, ''));
+                    } else {
+                      // For weekly/monthly data
+                      revenue = parseFloat(data.revenue || "0");
+                    }
+                    
+                    return {
+                      name: selectedPeriod === "today" ? 
+                        data.label || `${data.hour}:00` : // Use label from API for today
+                        data.label || `Day ${data.day}`, // Date label for week/month
+                      revenue: revenue,
+                      displayRevenue: `₹${revenue.toLocaleString()}`
+                    };
+                  });
                   
                   return (
                     <ResponsiveContainer width="100%" height="100%">
