@@ -211,9 +211,16 @@ export default function Sales() {
                                     selectedPeriod === "week" ? weeklyData : monthlyData;
                   
                   if (!currentData || !Array.isArray(currentData) || currentData.length === 0) {
+                    console.log("Chart data debug:", {
+                      selectedPeriod,
+                      currentData,
+                      hourlyData,
+                      weeklyData,
+                      monthlyData
+                    });
                     return (
                       <div className="flex items-center justify-center w-full h-full text-gray-500">
-                        No data available
+                        No data available for {selectedPeriod}
                       </div>
                     );
                   }

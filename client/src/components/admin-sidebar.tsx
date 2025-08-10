@@ -63,15 +63,15 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
             
             return (
               <Link key={item.path} href={item.path}>
-                <a
-                  className={`flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
+                <div
+                  className={`flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer ${
                     isActive ? "text-gray-700 bg-golf-cream border-r-4 border-golf-green" : ""
                   }`}
                   onClick={() => setIsMobileOpen(false)}
                 >
                   <Icon className="mr-3 h-5 w-5" />
                   {item.label}
-                </a>
+                </div>
               </Link>
             );
           })}
