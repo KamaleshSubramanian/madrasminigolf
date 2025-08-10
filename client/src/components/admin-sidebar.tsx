@@ -42,7 +42,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
