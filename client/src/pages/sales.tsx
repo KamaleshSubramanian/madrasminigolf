@@ -91,19 +91,20 @@ export default function Sales() {
       <AdminSidebar />
       
       {/* Main Content */}
-      <div className="ml-64 flex flex-col">
+      <div className="md:ml-64 flex flex-col">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-8 py-4">
-          <div className="flex justify-between items-center">
+        <header className="bg-white shadow-sm border-b border-gray-200 px-4 md:px-8 py-4 pt-16 md:pt-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Sales Analytics</h1>
-              <p className="text-gray-600">Track your revenue and game performance</p>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-800">Sales Analytics</h1>
+              <p className="text-sm md:text-base text-gray-600">Track your revenue and game performance</p>
             </div>
             <Button
               onClick={() => logoutMutation.mutate()}
               variant="outline"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 self-start md:self-auto"
               disabled={logoutMutation.isPending}
+              size="sm"
             >
               <LogOut className="h-4 w-4" />
               {logoutMutation.isPending ? "Logging out..." : "Logout"}
@@ -112,19 +113,20 @@ export default function Sales() {
         </header>
 
         {/* Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4 md:p-8">
         
         {/* Time Period Selector */}
-        <Card className="shadow-md p-6 mb-8">
-          <div className="flex items-center justify-between">
+        <Card className="shadow-md p-4 md:p-6 mb-6 md:mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <h3 className="text-lg font-semibold text-gray-800">Select Time Period</h3>
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               {["today", "week", "month"].map((period) => (
                 <Button
                   key={period}
                   variant={selectedPeriod === period ? "default" : "outline"}
                   className={selectedPeriod === period ? "bg-golf-green text-white" : ""}
                   onClick={() => setSelectedPeriod(period as "today" | "week" | "month")}
+                  size="sm"
                 >
                   {period.charAt(0).toUpperCase() + period.slice(1)}
                 </Button>

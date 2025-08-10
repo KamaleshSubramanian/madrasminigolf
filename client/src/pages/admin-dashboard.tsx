@@ -53,19 +53,20 @@ export default function AdminDashboard() {
       <AdminSidebar />
       
       {/* Main Content */}
-      <div className="ml-64 flex flex-col">
+      <div className="md:ml-64 flex flex-col">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-8 py-4">
-          <div className="flex justify-between items-center">
+        <header className="bg-white shadow-sm border-b border-gray-200 px-4 md:px-8 py-4 pt-16 md:pt-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
-              <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-800">Dashboard Overview</h1>
+              <p className="text-sm md:text-base text-gray-600">Welcome back! Here's what's happening today.</p>
             </div>
             <Button
               onClick={() => logoutMutation.mutate()}
               variant="outline"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 self-start md:self-auto"
               disabled={logoutMutation.isPending}
+              size="sm"
             >
               <LogOut className="h-4 w-4" />
               {logoutMutation.isPending ? "Logging out..." : "Logout"}
@@ -74,7 +75,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4 md:p-8">
         
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

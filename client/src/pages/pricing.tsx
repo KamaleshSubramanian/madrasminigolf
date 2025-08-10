@@ -138,24 +138,27 @@ export default function Pricing() {
       <AdminSidebar />
       
       {/* Main Content */}
-      <div className="ml-64 flex flex-col">
+      <div className="md:ml-64 flex flex-col">
         {/* Header */}
-        <div className="bg-white shadow-sm border-b px-8 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Pricing Management</h1>
-            <p className="text-gray-600">Set and manage player pricing for different days</p>
+        <div className="bg-white shadow-sm border-b px-4 md:px-8 py-4 pt-16 md:pt-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-800">Pricing Management</h1>
+              <p className="text-sm md:text-base text-gray-600">Set and manage player pricing for different days</p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-gray-600 hover:text-golf-green self-start md:self-auto"
+              size="sm"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-gray-600 hover:text-golf-green"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
         </div>
 
-        <div className="p-8">
+        <div className="p-4 md:p-8">
         
         {/* Current Pricing Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
