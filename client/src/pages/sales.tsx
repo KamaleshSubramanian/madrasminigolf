@@ -239,6 +239,8 @@ export default function Sales() {
                     };
                   });
                   
+
+                  
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       {chartType === "line" ? (
@@ -253,6 +255,7 @@ export default function Sales() {
                             stroke="#6b7280"
                             fontSize={12}
                             tickFormatter={(value) => `₹${value}`}
+                            domain={[0, 'dataMax']}
                           />
                           <Tooltip 
                             formatter={(value: any) => [`₹${value}`, 'Revenue']}
@@ -284,6 +287,7 @@ export default function Sales() {
                             stroke="#6b7280"
                             fontSize={12}
                             tickFormatter={(value) => `₹${value}`}
+                            domain={[0, 'dataMax']}
                           />
                           <Tooltip 
                             formatter={(value: any) => [`₹${value}`, 'Revenue']}

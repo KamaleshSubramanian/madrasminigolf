@@ -323,15 +323,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const today = new Date();
       const hourlyData = await storage.getHourlySales(today);
       
-      // Fill in missing hours with zero data
+      // Fill in missing hours with zero data (covering all 24 hours)
       const completeHourlyData = [];
-      for (let hour = 9; hour <= 20; hour++) {
+      for (let hour = 0; hour <= 23; hour++) {
         const existingData = hourlyData.find(h => h.hour === hour);
+        let label;
+        if (hour === 0) label = "12AM";
+        else if (hour < 12) label = `${hour}AM`;
+        else if (hour === 12) label = "12PM";
+        else label = `${hour - 12}PM`;
+        
         completeHourlyData.push({
           hour,
           games: existingData?.games || 0,
           revenue: existingData?.revenue || "0",
-          label: hour <= 12 ? `${hour}AM` : `${hour - 12}PM`,
+          label: label,
         });
       }
 
