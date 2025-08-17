@@ -221,7 +221,7 @@ export default function Gameplay() {
               </span>
               {hole < currentHole && (
                 <div className="absolute -top-1 -right-1">
-                  <Flag className="w-3 h-3 text-yellow-400 drop-shadow-sm" />
+                  <Flag className="w-4 h-4 text-red-500 drop-shadow-sm" fill="currentColor" />
                 </div>
               )}
             </div>
