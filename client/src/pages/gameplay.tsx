@@ -209,7 +209,7 @@ export default function Gameplay() {
                 hole < currentHole
                   ? "w-8 h-8 rounded-full bg-golf-green text-white shadow-md"
                   : hole === currentHole
-                  ? "w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-white shadow-lg border-4 border-white transform scale-110 animate-pulse"
+                  ? "w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-white shadow-lg border-3 border-white transform scale-105 animate-pulse"
                   : "w-8 h-8 rounded-full bg-gray-300 text-gray-600"
               }`}
             >
@@ -220,8 +220,8 @@ export default function Gameplay() {
                 {hole}
               </span>
               {hole < currentHole && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Flag className="w-4 h-4 text-white" />
+                <div className="absolute -top-1 -right-1">
+                  <Flag className="w-3 h-3 text-yellow-400 drop-shadow-sm" />
                 </div>
               )}
             </div>
