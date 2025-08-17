@@ -133,20 +133,29 @@ madras-mini-golf/
 
 ## Local Development Tips
 
+### Development Architecture
+- **Single Port**: Everything runs on http://localhost:5000
+- **Frontend**: Vite dev server with HMR for React development
+- **Backend**: Express server handling API routes and serving static files
+- **Database**: PostgreSQL connection with auto-detection (Neon vs local)
+
 ### Database Management
-- Use `drizzle-kit studio` for a web-based database GUI
-- Check `server/db.ts` for database connection configuration
-- Migrations are in the `drizzle/` folder
+- Use `npx drizzle-kit studio` for web-based database GUI
+- Check `server/db.ts` - auto-detects Neon vs local PostgreSQL
+- Migrations handled by Drizzle Kit
 
 ### API Testing
-- Backend runs on http://localhost:5000
-- API endpoints are prefixed with `/api`
-- Admin routes require authentication
+- All endpoints available at http://localhost:5000/api/*
+- Admin routes require session authentication
+- Health check: http://localhost:5000/health
 
-### Frontend Development
-- React app is served by Vite in development
-- Proxy configuration handles API requests
-- Hot reload works for all file changes
+### Production Testing
+Run production build locally:
+```bash
+npm run build
+NODE_ENV=production npm start
+# Or use: node production-test.js
+```
 
 ## Troubleshooting
 
@@ -182,46 +191,61 @@ npm install
 
 ## Production Deployment
 
-### Build for Production
+The application builds into a **single deployable Node.js application**.
+
+### Build Process
 ```bash
 npm run build
+# Creates ./dist/ containing:
+# - index.js (unified Express server)
+# - public/ (built React frontend)  
+# - package.json (production dependencies only)
+# - All necessary runtime files
 ```
 
-### Environment Variables for Production
-Set these in your production environment:
-- `DATABASE_URL` - Production PostgreSQL URL
-- `SESSION_SECRET` - Strong random string
-- `NODE_ENV=production`
-
-### Deploy to Various Platforms
-
-#### Heroku
+### Deployment Workflow
 ```bash
-# Add PostgreSQL addon
-heroku addons:create heroku-postgresql:hobby-dev
-
-# Set environment variables
-heroku config:set SESSION_SECRET=your_secret_here
-
-# Deploy
-git push heroku main
-```
-
-#### DigitalOcean/Railway/Render
-1. Connect your repository
-2. Set environment variables in platform settings
-3. Platform auto-deploys on push
-
-#### VPS/Custom Server
-```bash
-# Build and start
+# 1. Build the application
 npm run build
-npm run start
 
-# Or use PM2 for process management
-npm install -g pm2
-pm2 start dist/index.js --name "madras-mini-golf"
+# 2. Deploy the ./dist/ directory to your server
+scp -r dist/ user@server:/path/to/app/
+
+# 3. Install production dependencies
+ssh user@server "cd /path/to/app && npm install --production"
+
+# 4. Set environment variables and start
+ssh user@server "cd /path/to/app && NODE_ENV=production npm start"
 ```
+
+### Platform Deployment
+
+#### Heroku (Zero Config)
+```bash
+git push heroku main  # Automatically builds and deploys
+```
+
+#### Railway/Render/DigitalOcean
+1. Connect repository
+2. Build Command: `npm run build`
+3. Start Command: `npm start`
+4. Set environment variables
+5. Deploy automatically
+
+#### Docker
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Environment Variables (Production)
+```env
+DATABASE_URL=postgresql://user:pass@host:port/db
+NODE_ENV=production
+SESSION_SECRET=your_secure_random_secret_minimum_32_chars
+PORT=5000  # Optional, defaults to 5000
+```
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for comprehensive deployment guides including VPS setup, Docker configuration, and platform-specific instructions.
 
 ## Support
 

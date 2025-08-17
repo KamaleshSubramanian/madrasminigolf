@@ -6,29 +6,51 @@ This is a full-stack mini golf management system called "Madras Mini Golf" built
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes (August 2025)
+
+## Single Deployable Application Architecture
+- **Date**: August 17, 2025
+- **Change**: Converted project from separate frontend/backend to unified Node.js application
+- **Impact**: Frontend now bundles and serves from Express backend for simplified deployment
+- **Benefits**: Single build process, unified hosting, easier deployment to any Node.js platform
+- **Files Created**: DEPLOYMENT.md, ARCHITECTURE.md, build scripts, Docker configs
+
 # System Architecture
 
+## Application Architecture
+This is a **single deployable Node.js application** that serves both frontend and backend:
+
+### Development Mode
+- **Frontend**: Vite dev server with HMR serves React application
+- **Backend**: Express server handles API routes and middleware
+- **Integration**: Both run on single port (5000) with Vite middleware integration
+
+### Production Mode  
+- **Unified Server**: Express serves built React app as static files + API routes
+- **Static Assets**: Built frontend bundled into dist/public/ directory
+- **Single Process**: One Node.js process handles all requests
+- **Deployment**: Single application package for easy hosting
+
 ## Frontend Architecture
-The client-side application is built with React and TypeScript, utilizing a component-based architecture with the following key decisions:
+The client-side application is built with React and TypeScript:
 
-- **UI Framework**: Uses shadcn/ui components built on top of Radix UI primitives for consistent, accessible design
-- **Styling**: Tailwind CSS with custom golf-themed color variables and responsive design
-- **State Management**: React Query (TanStack Query) for server state management and data fetching
+- **UI Framework**: shadcn/ui components built on Radix UI primitives
+- **Styling**: Tailwind CSS with custom golf-themed color variables
+- **State Management**: React Query (TanStack Query) for server state management
 - **Routing**: Wouter for lightweight client-side routing
-- **Forms**: React Hook Form with Zod schema validation for type-safe form handling
-- **Animation**: Framer Motion for smooth UI animations and transitions
-
-The application follows a page-based structure with separate flows for players and administrators, implementing proper authentication checks and session management.
+- **Forms**: React Hook Form with Zod schema validation
+- **Animation**: Framer Motion for smooth UI transitions
+- **Build**: Vite bundles frontend into static assets served by Express
 
 ## Backend Architecture
-The server is built with Express.js and follows a clean separation of concerns:
+Express.js server with integrated frontend serving:
 
-- **API Layer**: RESTful Express routes with proper error handling and request logging
-- **Data Layer**: Abstracted storage interface with concrete database implementation
-- **Session Management**: Express sessions with PostgreSQL storage for authentication
+- **API Layer**: RESTful routes with proper error handling and logging
+- **Static Serving**: Built React app served as static files in production
+- **Data Layer**: Abstracted storage interface with PostgreSQL implementation
+- **Session Management**: Express sessions with PostgreSQL storage
 - **Security**: bcrypt for password hashing and session-based authentication
-
-The backend implements a repository pattern through the IStorage interface, allowing for easy testing and potential database swapping.
+- **Database**: Auto-detection between Neon (cloud) and local PostgreSQL
 
 ## Database Design
 Uses PostgreSQL with Drizzle ORM for type-safe database operations:
@@ -41,12 +63,15 @@ Uses PostgreSQL with Drizzle ORM for type-safe database operations:
 Key entities include users (admin), players, games, scores, and pricing history with proper relational integrity.
 
 ## Development Environment
-Configured for modern development workflow:
+Configured for modern development with unified production deployment:
 
-- **Build System**: Vite for fast development and optimized production builds
-- **TypeScript**: Strict type checking across frontend, backend, and shared code
-- **Path Mapping**: Organized imports with @ aliases for cleaner code organization
-- **Hot Reload**: Development server with HMR for rapid iteration
+- **Build System**: Vite for frontend development + production bundling
+- **Backend Build**: ESBuild for server bundling and optimization
+- **TypeScript**: Strict type checking across all code
+- **Path Mapping**: @ aliases for clean imports
+- **Hot Reload**: Vite HMR in development, static serving in production
+- **Single Port**: Development and production both use port 5000
+- **Unified Deployment**: Single Node.js application for hosting simplicity
 
 ## Authentication & Authorization
 Simple but effective security model:

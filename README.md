@@ -41,98 +41,120 @@ This application is built as a **single deployable Node.js application**:
 - PostgreSQL 14+
 - npm or yarn
 
-## Local Development Setup
+## Quick Start
 
-### 1. Clone the Repository
-
+### Development Setup
 ```bash
 git clone <your-repo-url>
 cd madras-mini-golf
-```
-
-### 2. Install Dependencies
-
-```bash
 npm install
-```
-
-### 3. Database Setup
-
-#### Option A: Local PostgreSQL
-1. Install PostgreSQL on your system
-2. Create a new database:
-```sql
-CREATE DATABASE madras_mini_golf;
-CREATE USER mini_golf_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE madras_mini_golf TO mini_golf_user;
-```
-
-#### Option B: Docker PostgreSQL
-```bash
-docker run --name madras-mini-golf-db \
-  -e POSTGRES_DB=madras_mini_golf \
-  -e POSTGRES_USER=mini_golf_user \
-  -e POSTGRES_PASSWORD=your_password \
-  -p 5432:5432 \
-  -d postgres:14
-```
-
-### 4. Environment Configuration
-
-1. Copy the example environment file:
-```bash
 cp .env.example .env
-```
-
-2. Update `.env` with your database credentials:
-```env
-DATABASE_URL=postgresql://mini_golf_user:your_password@localhost:5432/madras_mini_golf
-PGHOST=localhost
-PGPORT=5432
-PGUSER=mini_golf_user
-PGPASSWORD=your_password
-PGDATABASE=madras_mini_golf
-SESSION_SECRET=your_super_secret_session_key_here_make_it_long_and_random
-```
-
-### 5. Database Migration
-
-Run the database migrations to set up tables:
-```bash
-npm run db:migrate
-```
-
-### 6. Seed Initial Data (Optional)
-
-Create initial admin user and pricing:
-```bash
-npm run db:seed
-```
-
-### 7. Start Development Server
-
-```bash
+# Edit .env with your database credentials
 npm run dev
 ```
 
-The application will be available at:
-- Frontend: http://localhost:5000
-- API: http://localhost:5000/api
+### Production Build
+```bash
+npm run build                    # Build frontend and backend
+# Single deployable application created in ./dist/
+```
+
+## Local Development Setup
+
+### 1. Clone and Install
+```bash
+git clone <your-repo-url>
+cd madras-mini-golf
+npm install
+```
+
+### 2. Database Setup
+
+#### Option A: Local PostgreSQL
+```bash
+# Install PostgreSQL, then:
+createdb madras_mini_golf
+createuser -P mini_golf_user  # Set password when prompted
+```
+
+#### Option B: Docker (Recommended)
+```bash
+docker-compose up -d postgres
+```
+
+### 3. Environment Configuration
+```bash
+cp .env.example .env
+# Edit .env with your database credentials
+```
+
+### 4. Database Setup and Start
+```bash
+npx drizzle-kit migrate         # Create database tables
+npm run dev                     # Start development server
+```
+
+**Development URLs:**
+- Application: http://localhost:5000 (unified frontend + API)
+- Admin: http://localhost:5000/admin (admin/admin123)
+
+## Production Deployment
+
+### Build Process
+The application builds into a **single Node.js application**:
+```bash
+npm run build
+# Creates ./dist/ with:
+# - index.js (Express server)
+# - public/ (built React frontend)
+# - All necessary files for deployment
+```
+
+### Deployment Options
+
+#### Platform as a Service (Easiest)
+```bash
+# Heroku
+heroku create your-app-name
+heroku addons:create heroku-postgresql
+git push heroku main
+
+# Railway/Render/DigitalOcean
+# Connect repo, set environment variables, deploy
+```
+
+#### VPS/Docker
+```bash
+# Docker Compose
+docker-compose -f docker-compose.prod.yml up -d
+
+# Manual VPS
+scp -r dist/ user@server:/path/to/app
+ssh user@server "cd /path/to/app && npm install --production && npm start"
+```
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment guides.
 
 ## Available Scripts
 
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
-- `npm run db:generate` - Generate database migrations
-- `npm run db:migrate` - Run database migrations
-- `npm run db:studio` - Open Drizzle Studio (database GUI)
-- `npm run db:seed` - Seed initial data
+### Development
+- `npm run dev` - Start development server (Vite + Express)
+- `npm run build` - Build unified production application
+- `npm run start` - Start production server from build
+
+### Database
+- `npx drizzle-kit migrate` - Run database migrations
+- `npx drizzle-kit studio` - Open database GUI
+- `psql $DATABASE_URL -f scripts/seed.sql` - Seed initial data
+
+### Deployment
+- `./scripts/build-production.sh` - Complete production build
+- `node production-test.js` - Test production build locally
 
 ## Project Structure
 
 ```
-├── client/                 # React frontend
+├── client/                 # React frontend (dev only)
 │   ├── src/
 │   │   ├── components/    # Reusable UI components
 │   │   ├── pages/         # Application pages
@@ -142,10 +164,28 @@ The application will be available at:
 │   ├── db.ts             # Database connection
 │   ├── routes.ts         # API routes
 │   ├── storage.ts        # Data access layer
-│   └── index.ts          # Server entry point
+│   ├── index.ts          # Server entry point
+│   └── vite.ts           # Frontend/backend integration
 ├── shared/               # Shared types and schemas
-└── migrations/           # Database migrations
+├── scripts/              # Build and deployment scripts
+├── dist/                 # Production build output
+│   ├── index.js          # Built server (backend + static serving)
+│   ├── public/           # Built frontend assets
+│   └── package.json      # Production dependencies
+└── DEPLOYMENT.md         # Comprehensive deployment guide
 ```
+
+### Development vs Production
+
+**Development Mode (`npm run dev`):**
+- Vite dev server serves React frontend with HMR
+- Express server handles API routes
+- Two processes, single port (5000)
+
+**Production Mode (`npm run build` + `npm start`):**
+- Single Express server serves everything
+- Built React app served as static files
+- One process, one port, easy deployment
 
 ## Admin Access
 
