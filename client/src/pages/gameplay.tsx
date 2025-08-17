@@ -155,6 +155,9 @@ export default function Gameplay() {
         resetHoleScores[name] = 0;
       });
       setHoleScores(resetHoleScores);
+      
+      // Scroll to top of page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -167,6 +170,9 @@ export default function Gameplay() {
         resetHoleScores[name] = 0;
       });
       setHoleScores(resetHoleScores);
+      
+      // Scroll to top of page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
