@@ -25,7 +25,15 @@ A comprehensive mini golf management application featuring dual flows for player
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Session-based with bcrypt
 - **Build Tool**: Vite
-- **Deployment**: Replit-ready
+- **Deployment**: Single Node.js application serving frontend and backend
+
+## Architecture
+
+This application is built as a **single deployable Node.js application**:
+- The Express backend serves the built React frontend as static files
+- All API endpoints are served from the same domain/port
+- Production builds create a unified application for easy deployment
+- No separate frontend server required
 
 ## Prerequisites
 

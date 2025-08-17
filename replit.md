@@ -1,6 +1,6 @@
 # Overview
 
-This is a full-stack mini golf management system called "Madras Mini Golf" built with modern web technologies. The application provides a complete player experience for playing mini golf games and an administrative interface for managing pricing, sales analytics, and game data. The system handles player registration, game scoring, payment tracking, and provides detailed sales reporting with different time periods and visualizations.
+This is a full-stack mini golf management system called "Madras Mini Golf" built as a single deployable Node.js application. The Express backend serves the built React frontend as static files, creating a unified application that simplifies deployment and hosting. The system provides a complete player experience for playing mini golf games and an administrative interface for managing pricing, sales analytics, and game data.
 
 # User Preferences
 

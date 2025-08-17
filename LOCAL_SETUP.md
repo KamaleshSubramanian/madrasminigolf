@@ -2,6 +2,14 @@
 
 Follow these steps to run the Madras Mini Golf application locally on your machine.
 
+## Application Architecture
+
+This project is designed as a **single Node.js application** where:
+- In **development**: Vite dev server handles frontend, Express handles API
+- In **production**: Express serves both the built frontend and API endpoints
+- Frontend is bundled and served as static files from the backend
+- Single port deployment for simplified hosting
+
 ## Prerequisites
 
 - Node.js 18 or higher

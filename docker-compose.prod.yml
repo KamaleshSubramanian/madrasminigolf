@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: madras-mini-golf-prod-db
+    environment:
+      POSTGRES_DB: madras_mini_golf
+      POSTGRES_USER: mini_golf_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_prod_password}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./scripts/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - mini-golf-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mini_golf_user -d madras_mini_golf"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: madras-mini-golf-prod-app
+    environment:
+      DATABASE_URL: postgresql://mini_golf_user:${POSTGRES_PASSWORD:-secure_prod_password}@postgres:5432/madras_mini_golf
+      NODE_ENV: production
+      SESSION_SECRET: ${SESSION_SECRET}
+      PORT: 5000
+    ports:
+      - "${APP_PORT:-5000}:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mini-golf-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    container_name: madras-mini-golf-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - mini-golf-network
+    restart: unless-stopped
+
+networks:
+  mini-golf-network:
+    driver: bridge
+
+volumes:
+  postgres_prod_data:
