@@ -188,25 +188,42 @@ export default function Gameplay() {
       <div className="max-w-md mx-auto pt-8">
         {/* Header with Hole Info */}
         <div className="text-center mb-6">
-          <div className="text-5xl mb-2">⛳</div>
-          <h2 className="text-3xl font-bold text-golf-dark">Hole {currentHole}</h2>
+          <div className="relative inline-block mb-4">
+            <div className="text-5xl mb-2">⛳</div>
+            <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg border-2 border-white animate-pulse">
+              {currentHole}
+            </div>
+          </div>
+          <h2 className="text-3xl font-bold text-golf-dark bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+            Hole {currentHole}
+          </h2>
           <p className="text-golf-dark opacity-75">Enter scores for each player</p>
         </div>
         
         {/* Progress Indicators */}
-        <div className="flex justify-center space-x-2 mb-8">
+        <div className="flex justify-center space-x-3 mb-8">
           {Array.from({ length: 7 }, (_, i) => i + 1).map(hole => (
             <div
               key={`hole-${hole}`}
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+              className={`relative flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                 hole < currentHole
-                  ? "bg-golf-green text-white"
+                  ? "w-8 h-8 rounded-full bg-golf-green text-white shadow-md"
                   : hole === currentHole
-                  ? "bg-golf-light text-white border-2 border-golf-dark"
-                  : "bg-gray-300 text-gray-600"
+                  ? "w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-white shadow-lg border-4 border-white transform scale-110 animate-pulse"
+                  : "w-8 h-8 rounded-full bg-gray-300 text-gray-600"
               }`}
             >
-              {hole}
+              {hole === currentHole && (
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 opacity-75 blur-sm animate-pulse"></div>
+              )}
+              <span className="relative z-10 font-extrabold">
+                {hole}
+              </span>
+              {hole < currentHole && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Flag className="w-4 h-4 text-white" />
+                </div>
+              )}
             </div>
           ))}
         </div>
