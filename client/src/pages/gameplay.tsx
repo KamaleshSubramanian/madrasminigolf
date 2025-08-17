@@ -93,7 +93,7 @@ export default function Gameplay() {
   };
 
   const incrementScore = (playerName: string) => {
-    const currentScore = holeScores[playerName] || 7;
+    const currentScore = holeScores[playerName] || 6;
     if (currentScore < 20) {
       const newScore = currentScore < 7 ? 7 : currentScore + 1;
       setHoleScores(prev => ({
@@ -104,7 +104,7 @@ export default function Gameplay() {
   };
 
   const decrementScore = (playerName: string) => {
-    const currentScore = holeScores[playerName] || 7;
+    const currentScore = holeScores[playerName] || 6;
     if (currentScore > 7) {
       setHoleScores(prev => ({
         ...prev,
@@ -268,7 +268,7 @@ export default function Gameplay() {
                       size="sm"
                       onClick={() => decrementScore(playerName)}
                       className="h-10 w-8 p-0 hover:bg-gray-100 rounded-r-none"
-                      disabled={(holeScores[playerName] || 7) <= 7}
+                      disabled={(holeScores[playerName] || 6) <= 7}
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
@@ -277,14 +277,14 @@ export default function Gameplay() {
                       className="w-12 h-10 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none text-sm font-bold"
                       onChange={(e) => handleManualScore(playerName, e.target.value)}
                       value={holeScores[playerName] > 6 ? holeScores[playerName].toString() : ""}
-                      placeholder="7+"
+                      placeholder="6+"
                     />
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => incrementScore(playerName)}
                       className="h-10 w-8 p-0 hover:bg-gray-100 rounded-l-none"
-                      disabled={(holeScores[playerName] || 7) >= 20}
+                      disabled={(holeScores[playerName] || 6) >= 20}
                     >
                       <Plus className="h-3 w-3" />
                     </Button>
