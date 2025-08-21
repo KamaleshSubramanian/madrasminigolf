@@ -62,14 +62,17 @@ git push heroku main
 heroku run npm run db:migrate
 ```
 
-#### Railway
-1. Connect your GitHub repository
-2. Set environment variables:
+#### Railway (Recommended - See RAILWAY_DEPLOYMENT.md for detailed guide)
+1. Connect your GitHub repository to Railway
+2. Add PostgreSQL database service (automatic DATABASE_URL)
+3. Set environment variables:
    - `NODE_ENV=production`
-   - `SESSION_SECRET=your_secret`
-3. Railway auto-detects Node.js and runs `npm start`
-4. Add PostgreSQL database from Railway dashboard
-5. Run migrations via Railway CLI: `railway run npm run db:migrate`
+   - `SESSION_SECRET=your_secure_random_secret`
+4. Railway auto-detects Node.js and runs `npm start`
+5. Initialize database: `railway run npm run db:push`
+6. Access your live app at the provided Railway domain
+
+**Complete step-by-step guide available in RAILWAY_DEPLOYMENT.md**
 
 #### Render
 1. Connect repository and select "Web Service"

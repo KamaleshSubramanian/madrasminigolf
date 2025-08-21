@@ -53,11 +53,37 @@ cp .env.example .env
 npm run dev
 ```
 
-### Production Build
+### Production Deployment (Railway - Recommended)
+```bash
+# See RAILWAY_DEPLOYMENT.md for complete step-by-step guide
+# 1. Push to GitHub
+# 2. Connect repository to Railway
+# 3. Add PostgreSQL database
+# 4. Set environment variables
+# 5. Deploy automatically
+```
+
+### Production Build (Local)
 ```bash
 npm run build                    # Build frontend and backend
 # Single deployable application created in ./dist/
 ```
+
+## Deployment Options
+
+### Railway (Recommended)
+Railway provides the easiest deployment with integrated PostgreSQL:
+
+1. **Quick Deploy:** See `RAILWAY_DEPLOYMENT.md` for complete step-by-step guide
+2. **Zero Configuration:** Automatic Node.js detection and database integration
+3. **Built-in PostgreSQL:** Database service with automatic connection
+4. **Free Tier Available:** Perfect for testing and small-scale deployment
+
+### Other Platforms
+- **Heroku:** See `DEPLOYMENT.md` for Heroku-specific instructions
+- **Render:** Full deployment guide in `DEPLOYMENT.md`
+- **DigitalOcean App Platform:** Supported with minor configuration
+- **Vercel/Netlify:** Not recommended (require separate database hosting)
 
 ## Local Development Setup
 

@@ -15,6 +15,20 @@ Preferred communication style: Simple, everyday language.
 - **Benefits**: Single build process, unified hosting, easier deployment to any Node.js platform
 - **Files Created**: DEPLOYMENT.md, ARCHITECTURE.md, build scripts, Docker configs
 
+## Gameplay Interface Improvements
+- **Date**: August 21, 2025
+- **Change**: Simplified score input system by removing increment/decrement buttons
+- **Impact**: Cleaner mobile interface with manual input for scores 7+ 
+- **Benefits**: Reduced interface complexity, better mobile experience, faster score entry
+- **Details**: Input box shows "7+" placeholder, accepts any number 1-20, compact total score display
+
+## Railway Deployment Documentation
+- **Date**: August 21, 2025
+- **Change**: Created comprehensive Railway deployment guide
+- **Impact**: Complete step-by-step instructions for production deployment
+- **Benefits**: Easy Railway deployment with PostgreSQL, automated build process
+- **Files Created**: RAILWAY_DEPLOYMENT.md with detailed deployment steps
+
 # System Architecture
 
 ## Application Architecture
