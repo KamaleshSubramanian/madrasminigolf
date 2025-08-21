@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useLocation, useParams } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, ArrowRight, Flag, Plus, Minus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Flag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import GolfLoader from "@/components/golf-loader";
 
@@ -83,8 +83,8 @@ export default function Gameplay() {
     }
     
     const strokeCount = parseInt(strokes);
-    // Validate range 7-20
-    if (strokeCount >= 7 && strokeCount <= 20) {
+    // Validate range 1-20 (now allowing all strokes to be manually entered)
+    if (strokeCount >= 1 && strokeCount <= 20) {
       setHoleScores(prev => ({
         ...prev,
         [playerName]: strokeCount,
@@ -92,26 +92,7 @@ export default function Gameplay() {
     }
   };
 
-  const incrementScore = (playerName: string) => {
-    const currentScore = holeScores[playerName] || 6;
-    if (currentScore < 20) {
-      const newScore = currentScore < 7 ? 7 : currentScore + 1;
-      setHoleScores(prev => ({
-        ...prev,
-        [playerName]: newScore,
-      }));
-    }
-  };
 
-  const decrementScore = (playerName: string) => {
-    const currentScore = holeScores[playerName] || 6;
-    if (currentScore > 7) {
-      setHoleScores(prev => ({
-        ...prev,
-        [playerName]: currentScore - 1,
-      }));
-    }
-  };
 
   const calculateTotalScore = (playerName: string) => {
     return totalScores[playerName] || 0;
@@ -261,33 +242,15 @@ export default function Gameplay() {
                     ))}
                   </div>
                   
-                  {/* Inline Incrementer for 7+ */}
-                  <div className="flex items-center border-2 border-gray-200 rounded-md focus-within:border-golf-green">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => decrementScore(playerName)}
-                      className="h-10 w-8 p-0 hover:bg-gray-100 rounded-r-none"
-                      disabled={(holeScores[playerName] || 6) <= 7}
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
+                  {/* Manual Input for 7+ */}
+                  <div className="flex-shrink-0">
                     <Input
                       type="text"
-                      className="w-10 h-10 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none text-sm font-bold"
+                      className="w-16 h-10 text-center border-2 border-gray-200 focus:border-golf-green text-sm font-bold"
                       onChange={(e) => handleManualScore(playerName, e.target.value)}
                       value={holeScores[playerName] > 6 ? holeScores[playerName].toString() : ""}
-                      placeholder="6+"
+                      placeholder="7+"
                     />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => incrementScore(playerName)}
-                      className="h-10 w-8 p-0 hover:bg-gray-100 rounded-l-none"
-                      disabled={(holeScores[playerName] || 6) >= 20}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
                   </div>
                 </div>
                 
