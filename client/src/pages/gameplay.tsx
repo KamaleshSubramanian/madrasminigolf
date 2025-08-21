@@ -244,7 +244,7 @@ export default function Gameplay() {
                 
                 {/* Score Buttons and Incrementer */}
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="grid grid-cols-6 gap-2 flex-1">
+                  <div className="grid grid-cols-6 gap-3 flex-1">
                     {[1, 2, 3, 4, 5, 6].map(strokes => (
                       <Button
                         key={`${playerName}-stroke-${strokes}`}
@@ -274,7 +274,7 @@ export default function Gameplay() {
                     </Button>
                     <Input
                       type="text"
-                      className="w-12 h-10 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none text-sm font-bold"
+                      className="w-10 h-10 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none text-sm font-bold"
                       onChange={(e) => handleManualScore(playerName, e.target.value)}
                       value={holeScores[playerName] > 6 ? holeScores[playerName].toString() : ""}
                       placeholder="6+"
@@ -293,9 +293,9 @@ export default function Gameplay() {
                 
                 {/* Individual Player Total (from hole 2 onwards) */}
                 {currentHole > 1 && (
-                  <div className="bg-golf-light/20 rounded-lg p-3 text-center">
-                    <div className="text-sm text-golf-dark font-medium">Total Score</div>
-                    <div className="text-2xl font-bold text-golf-green">
+                  <div className="bg-golf-green rounded-lg p-4 text-center shadow-md">
+                    <div className="text-sm text-white font-medium opacity-90">Total Score</div>
+                    <div className="text-2xl font-bold text-white">
                       {calculateTotalScore(playerName)} strokes
                     </div>
                   </div>

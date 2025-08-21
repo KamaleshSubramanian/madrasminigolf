@@ -133,7 +133,9 @@ export default function Results() {
                     </div>
                     <span className="font-semibold text-golf-dark">{player.name}</span>
                   </div>
-                  <span className="text-2xl font-bold text-golf-green">{player.totalScore}</span>
+                  <div className="bg-golf-green rounded-lg px-4 py-2 shadow-md">
+                    <span className="text-xl font-bold text-white">{player.totalScore}</span>
+                  </div>
                 </motion.div>
               ))}
             </CardContent>
