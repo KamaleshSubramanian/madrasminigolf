@@ -26,7 +26,7 @@ export default function Results() {
       // Calculate total scores for each player
       const scoresByPlayer: { [playerName: string]: { [hole: number]: number } } = {};
       
-      gameData.scores.forEach((score: any) => {
+      gameData.scores?.forEach((score: any) => {
         if (!scoresByPlayer[score.playerName]) {
           scoresByPlayer[score.playerName] = {};
         }
@@ -152,28 +152,26 @@ export default function Results() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-golf-dark">Players:</span>
-                  <span className="font-semibold">{gameData.playerCount}</span>
+                  <span className="font-semibold">{playerScores.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-golf-dark">Date:</span>
                   <span className="font-semibold">
-                    {new Date(gameData.completedAt).toLocaleDateString()}
+                    {gameData.completedAt ? new Date(gameData.completedAt).toLocaleDateString() : new Date().toLocaleDateString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-golf-dark">Time:</span>
                   <span className="font-semibold">
-                    {new Date(gameData.completedAt).toLocaleTimeString('en-US', { 
+                    {gameData.completedAt ? new Date(gameData.completedAt).toLocaleTimeString('en-US', { 
+                      hour: 'numeric', 
+                      minute: '2-digit', 
+                      hour12: true 
+                    }) : new Date().toLocaleTimeString('en-US', { 
                       hour: 'numeric', 
                       minute: '2-digit', 
                       hour12: true 
                     })}
-                  </span>
-                </div>
-                <div className="flex justify-between border-t pt-3">
-                  <span className="text-golf-dark font-semibold">Total Cost:</span>
-                  <span className="font-bold text-xl text-golf-green">
-                    ₹{parseFloat(gameData.totalCost).toLocaleString()}
                   </span>
                 </div>
               </div>

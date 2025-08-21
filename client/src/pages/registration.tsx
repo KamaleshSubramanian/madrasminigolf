@@ -123,6 +123,20 @@ export default function Registration() {
     registerMutation.mutate(playerData);
   };
 
+  const handleCancel = () => {
+    // Reset form data
+    form.reset({
+      name: "",
+      contact: "",
+      email: "",
+      consent: false,
+    });
+    // Clear saved form data
+    sessionStorage.removeItem("registrationFormData");
+    // Navigate back to landing page
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-golf-cream p-4">
       {registerMutation.isPending && (
@@ -240,9 +254,21 @@ export default function Registration() {
                   type="submit" 
                   className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3"
                   disabled={registerMutation.isPending}
+                  data-testid="button-continue"
                 >
                   {registerMutation.isPending ? "Registering..." : "Continue to Player Setup"}
                   <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                
+                <Button 
+                  type="button"
+                  onClick={handleCancel}
+                  variant="outline"
+                  className="w-full border-2 border-gray-300 text-gray-600 font-medium py-3 hover:bg-gray-50 mt-3"
+                  disabled={registerMutation.isPending}
+                  data-testid="button-cancel"
+                >
+                  Cancel
                 </Button>
               </form>
             </Form>
