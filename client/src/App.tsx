@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Registration from "@/pages/registration";
+import TermsAndConditions from "@/pages/terms-and-conditions";
 import PlayerSetup from "@/pages/player-setup";
 import Gameplay from "@/pages/gameplay";
 import Results from "@/pages/results";
@@ -20,6 +21,8 @@ function Router() {
       {/* Player Flow */}
       <Route path="/" component={Landing} />
       <Route path="/register" component={Registration} />
+      <Route path="/registration" component={Registration} />
+      <Route path="/terms" component={TermsAndConditions} />
       <Route path="/players" component={PlayerSetup} />
       <Route path="/game/:gameId" component={Gameplay} />
       <Route path="/results/:gameId" component={Results} />

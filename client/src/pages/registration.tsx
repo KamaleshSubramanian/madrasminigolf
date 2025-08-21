@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,21 @@ export default function Registration() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
+  // Function to save form data to sessionStorage
+  const saveFormData = (data: Partial<RegistrationForm>) => {
+    sessionStorage.setItem("registrationFormData", JSON.stringify(data));
+  };
+
+  // Function to load form data from sessionStorage
+  const loadFormData = (): Partial<RegistrationForm> => {
+    try {
+      const saved = sessionStorage.getItem("registrationFormData");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  };
+
   const form = useForm<RegistrationForm>({
     resolver: zodResolver(registrationSchema),
     defaultValues: {
@@ -38,6 +53,34 @@ export default function Registration() {
       consent: false,
     },
   });
+
+  // Load saved form data when component mounts
+  useEffect(() => {
+    const savedData = loadFormData();
+    if (savedData) {
+      form.reset({
+        name: savedData.name || "",
+        contact: savedData.contact || "",
+        email: savedData.email || "",
+        consent: savedData.consent || false,
+      });
+    }
+  }, [form]);
+
+  // Save form data when values change
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      saveFormData(value);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  const handleTermsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Save current form data before navigating
+    saveFormData(form.getValues());
+    navigate("/terms");
+  };
 
   const registerMutation = useMutation({
     mutationFn: (data: Omit<RegistrationForm, "consent">) => 
@@ -59,6 +102,8 @@ export default function Registration() {
 
   const onSubmit = (data: RegistrationForm) => {
     const { consent, ...playerData } = data;
+    // Clear saved form data on successful submission
+    sessionStorage.removeItem("registrationFormData");
     registerMutation.mutate(playerData);
   };
 
@@ -158,10 +203,16 @@ export default function Registration() {
                       <div className="space-y-1 leading-none">
                         <FormLabel className="text-sm text-golf-dark">
                           I agree to the{" "}
-                          <a href="#" className="text-golf-green underline">Terms of Service</a>
-                          {" "}and{" "}
-                          <a href="#" className="text-golf-green underline">Privacy Policy</a>. 
-                          I consent to receive updates about my game.
+                          <button 
+                            type="button"
+                            onClick={handleTermsClick}
+                            className="text-golf-green underline hover:text-golf-light transition-colors inline-flex items-center gap-1"
+                            data-testid="link-terms"
+                          >
+                            <FileText className="h-3 w-3" />
+                            Terms & Conditions
+                          </button>
+                          {" "}and consent to receive updates about my game.
                         </FormLabel>
                         <FormMessage />
                       </div>
