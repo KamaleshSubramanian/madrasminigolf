@@ -243,8 +243,9 @@ export default function Gameplay() {
                 </div>
                 
                 {/* Score Buttons and Incrementer */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="grid grid-cols-6 gap-3 flex-1">
+                <div className="space-y-3 mb-4">
+                  {/* Predefined Score Buttons */}
+                  <div className="grid grid-cols-6 gap-3">
                     {[1, 2, 3, 4, 5, 6].map(strokes => (
                       <Button
                         key={`${playerName}-stroke-${strokes}`}
@@ -261,33 +262,38 @@ export default function Gameplay() {
                     ))}
                   </div>
                   
-                  {/* Inline Incrementer for 7+ */}
-                  <div className="flex items-center border-2 border-gray-200 rounded-md focus-within:border-golf-green">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => decrementScore(playerName)}
-                      className="h-10 w-8 p-0 hover:bg-gray-100 rounded-r-none"
-                      disabled={(holeScores[playerName] || 6) <= 7}
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <Input
-                      type="text"
-                      className="w-10 h-10 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none text-sm font-bold"
-                      onChange={(e) => handleManualScore(playerName, e.target.value)}
-                      value={holeScores[playerName] > 6 ? holeScores[playerName].toString() : ""}
-                      placeholder="6+"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => incrementScore(playerName)}
-                      className="h-10 w-8 p-0 hover:bg-gray-100 rounded-l-none"
-                      disabled={(holeScores[playerName] || 6) >= 20}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
+                  {/* Manual Input for 7+ - Responsive Layout */}
+                  <div className="flex justify-center">
+                    <div className="flex items-center border-2 border-gray-200 rounded-md focus-within:border-golf-green w-fit">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => decrementScore(playerName)}
+                        className="h-10 w-8 p-0 hover:bg-gray-100 rounded-r-none"
+                        disabled={(holeScores[playerName] || 6) <= 7}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <div className="flex flex-col items-center px-2">
+                        <Input
+                          type="text"
+                          className="w-12 h-10 text-center border-0 focus:ring-0 focus-visible:ring-0 rounded-none text-sm font-bold"
+                          onChange={(e) => handleManualScore(playerName, e.target.value)}
+                          value={holeScores[playerName] > 6 ? holeScores[playerName].toString() : ""}
+                          placeholder="7+"
+                        />
+                        <span className="text-xs text-gray-500 mt-1">7+ strokes</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => incrementScore(playerName)}
+                        className="h-10 w-8 p-0 hover:bg-gray-100 rounded-l-none"
+                        disabled={(holeScores[playerName] || 6) >= 20}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 
