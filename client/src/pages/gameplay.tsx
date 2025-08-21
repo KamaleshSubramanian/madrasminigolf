@@ -256,10 +256,9 @@ export default function Gameplay() {
                 
                 {/* Individual Player Total (from hole 2 onwards) */}
                 {currentHole > 1 && (
-                  <div className="bg-golf-green rounded-lg p-4 text-center shadow-md">
-                    <div className="text-sm text-white font-medium opacity-90">Total Score</div>
-                    <div className="text-2xl font-bold text-white">
-                      {calculateTotalScore(playerName)} strokes
+                  <div className="bg-golf-green rounded-lg p-3 text-center shadow-md">
+                    <div className="text-white font-bold text-lg">
+                      Total: {calculateTotalScore(playerName)} strokes
                     </div>
                   </div>
                 )}
