@@ -8,6 +8,15 @@ export default function TermsAndConditions() {
   const [, setLocation] = useLocation();
 
   const handleBack = () => {
+    // Navigate back without checking the checkbox
+    setLocation("/registration");
+  };
+
+  const handleAccept = () => {
+    // Set checkbox to checked when accepting terms
+    const savedData = JSON.parse(sessionStorage.getItem("registrationFormData") || "{}");
+    savedData.consent = true;
+    sessionStorage.setItem("registrationFormData", JSON.stringify(savedData));
     setLocation("/registration");
   };
 
@@ -114,10 +123,10 @@ If you do not agree, you must not enter the premises or participate in the game.
             size="sm"
             onClick={handleBack}
             className="flex items-center gap-2 hover:bg-green-50"
-            data-testid="button-back"
+            data-testid="button-back-top"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Registration
+            Back
           </Button>
         </div>
 
@@ -174,17 +183,17 @@ If you do not agree, you must not enter the premises or participate in the game.
                 onClick={handleBack}
                 variant="outline"
                 className="border-green-600 text-green-600 hover:bg-green-50 px-6 py-2"
-                data-testid="button-back-secondary"
+                data-testid="button-back"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Registration
+                Back
               </Button>
               <Button
-                onClick={handleBack}
+                onClick={handleAccept}
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-2"
-                data-testid="button-back-bottom"
+                data-testid="button-accept"
               >
-                I Understand - Continue Registration
+                Accept
               </Button>
             </div>
           </CardContent>

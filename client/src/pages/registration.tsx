@@ -67,6 +67,22 @@ export default function Registration() {
     }
   }, [form]);
 
+  // Also check for updates when component becomes visible (user returns from terms)
+  useEffect(() => {
+    const handleFocus = () => {
+      const savedData = loadFormData();
+      if (savedData && typeof savedData.consent !== 'undefined') {
+        form.setValue('consent', savedData.consent);
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    // Also run when component mounts/becomes visible
+    handleFocus();
+    
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [form]);
+
   // Save form data when values change
   useEffect(() => {
     const subscription = form.watch((value) => {
