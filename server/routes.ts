@@ -2,7 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcryptjs";
-import { insertPlayerSchema, insertScoreSchema, insertPricingSchema } from "@shared/schema";
+import {
+  insertPlayerSchema,
+  insertScoreSchema,
+  insertPricingSchema,
+} from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
@@ -26,21 +30,23 @@ declare module "express-session" {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   const PgSession = ConnectPgSimple(session);
-  
-  app.use(session({
-    store: new PgSession({
-      pool: pool,
-      tableName: 'session',
-    }),
-    secret: process.env.SESSION_SECRET || 'your-secret-key-here',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false, // Set to true in production with HTTPS
-      httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    },
-  }));
+
+  app.use(
+    session({
+      store: new PgSession({
+        pool: pool as any,
+        tableName: "session",
+      }),
+      secret: process.env.SESSION_SECRET || "your-secret-key-here",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: false, // Set to true in production with HTTPS
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      },
+    })
+  );
 
   // Initialize default admin user and pricing if not exists
   const initializeDefaults = async () => {
@@ -95,23 +101,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/games", async (req, res) => {
     try {
       const gameData = createGameSchema.parse(req.body);
-      
+
       // Calculate cost based on pricing and day
       const currentPricing = await storage.getCurrentPricing();
       if (!currentPricing) {
         return res.status(400).json({ message: "Pricing not configured" });
       }
 
-      const pricePerPlayer = gameData.isWeekend 
-        ? parseFloat(currentPricing.weekendPrice) 
+      const pricePerPlayer = gameData.isWeekend
+        ? parseFloat(currentPricing.weekendPrice)
         : parseFloat(currentPricing.weekdayPrice);
-      
+
       const totalCost = (pricePerPlayer * gameData.playerCount).toFixed(2);
 
       const game = await storage.createGame({
         ...gameData,
         totalCost,
-      });
+      } as any);
 
       res.json(game);
     } catch (error: any) {
@@ -123,10 +129,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/games/:gameId/scores", async (req, res) => {
     try {
       const { gameId } = req.params;
-      const scoresData = z.array(insertScoreSchema.omit({ gameId: true })).parse(req.body);
-      
+      const scoresData = z
+        .array(insertScoreSchema.omit({ gameId: true }))
+        .parse(req.body);
+
       const scores = await Promise.all(
-        scoresData.map(scoreData => 
+        scoresData.map((scoreData) =>
           storage.createScore({ ...scoreData, gameId })
         )
       );
@@ -142,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { gameId } = req.params;
       const game = await storage.getGame(gameId);
-      
+
       if (!game) {
         return res.status(404).json({ message: "Game not found" });
       }
@@ -171,9 +179,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/login", async (req, res) => {
     try {
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
-        return res.status(400).json({ message: "Username and password required" });
+        return res
+          .status(400)
+          .json({ message: "Username and password required" });
       }
 
       const user = await storage.getUserByUsername(username);
@@ -187,7 +197,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       req.session.userId = user.id;
-      res.json({ message: "Login successful", user: { id: user.id, username: user.username } });
+      res.json({
+        message: "Login successful",
+        user: { id: user.id, username: user.username },
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -226,19 +239,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const todayStats = await storage.getDailySales(today);
       const yesterdayStats = await storage.getDailySales(yesterday);
 
-      // Calculate growth percentages
-      const gamesGrowth = yesterdayStats.totalGames > 0 
-        ? ((todayStats.totalGames - yesterdayStats.totalGames) / yesterdayStats.totalGames * 100).toFixed(1)
-        : "0";
+      // Calculate today's average score
+      const startOfDay = new Date(today);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(today);
+      endOfDay.setHours(23, 59, 59, 999);
 
-      const revenueGrowth = parseFloat(yesterdayStats.totalRevenue) > 0
-        ? ((parseFloat(todayStats.totalRevenue) - parseFloat(yesterdayStats.totalRevenue)) / parseFloat(yesterdayStats.totalRevenue) * 100).toFixed(1)
-        : "0";
+      const todayGames = await storage.getGamesByDateRange(
+        startOfDay,
+        endOfDay
+      );
+      let totalStrokes = 0;
+      let totalScores = 0;
+
+      for (const game of todayGames) {
+        const gameScores = await storage.getScoresByGame(game.id);
+        for (const score of gameScores) {
+          totalStrokes += score.strokes;
+          totalScores++;
+        }
+      }
+
+      const avgScore =
+        totalScores > 0 ? (totalStrokes / totalScores).toFixed(1) : "0";
+
+      // Calculate growth percentages
+      const gamesGrowth =
+        yesterdayStats.totalGames > 0
+          ? (
+              ((todayStats.totalGames - yesterdayStats.totalGames) /
+                yesterdayStats.totalGames) *
+              100
+            ).toFixed(1)
+          : "0";
+
+      const revenueGrowth =
+        parseFloat(yesterdayStats.totalRevenue) > 0
+          ? (
+              ((parseFloat(todayStats.totalRevenue) -
+                parseFloat(yesterdayStats.totalRevenue)) /
+                parseFloat(yesterdayStats.totalRevenue)) *
+              100
+            ).toFixed(1)
+          : "0";
 
       res.json({
         todayGames: todayStats.totalGames,
-        todayRevenue: `₹${parseFloat(todayStats.totalRevenue).toLocaleString()}`,
+        todayRevenue: `₹${parseFloat(
+          todayStats.totalRevenue
+        ).toLocaleString()}`,
         totalPlayers: todayStats.totalPlayers,
+        avgScore: avgScore,
         gamesGrowth: `${gamesGrowth}%`,
         revenueGrowth: `${revenueGrowth}%`,
       });
@@ -257,21 +308,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       endOfDay.setHours(23, 59, 59, 999);
 
       const games = await storage.getGamesByDateRange(startOfDay, endOfDay);
-      
-      const recentGames = await Promise.all(games.slice(0, 10).map(async game => {
-        const player = await storage.getPlayer(game.playerId);
-        return {
-          id: game.id,
-          playerCount: game.playerCount,
-          leadPlayer: player?.name || "Unknown",
-          cost: `₹${parseFloat(game.totalCost).toLocaleString()}`,
-          time: new Date(game.completedAt).toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit', 
-            hour12: true 
-          }),
-        };
-      }));
+
+      const recentGames = await Promise.all(
+        games.slice(0, 10).map(async (game) => {
+          const player = await storage.getPlayer(game.playerId);
+          return {
+            id: game.id,
+            playerCount: game.playerCount,
+            leadPlayer: player?.name || "Unknown",
+            cost: `₹${parseFloat(game.totalCost).toLocaleString()}`,
+            time: new Date(game.completedAt).toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            }),
+          };
+        })
+      );
 
       res.json(recentGames);
     } catch (error: any) {
@@ -308,9 +361,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalGames: stats.totalGames,
         totalRevenue: `₹${parseFloat(stats.totalRevenue).toLocaleString()}`,
         totalPlayers: stats.totalPlayers,
-        avgPerGame: stats.totalGames > 0 
-          ? `₹${(parseFloat(stats.totalRevenue) / stats.totalGames).toFixed(0)}`
-          : "₹0",
+        avgPerGame:
+          stats.totalGames > 0
+            ? `₹${(parseFloat(stats.totalRevenue) / stats.totalGames).toFixed(
+                0
+              )}`
+            : "₹0",
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -322,17 +378,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const today = new Date();
       const hourlyData = await storage.getHourlySales(today);
-      
+
       // Fill in missing hours with zero data (covering all 24 hours)
       const completeHourlyData = [];
       for (let hour = 0; hour <= 23; hour++) {
-        const existingData = hourlyData.find(h => h.hour === hour);
+        const existingData = hourlyData.find((h) => h.hour === hour);
         let label;
         if (hour === 0) label = "12AM";
         else if (hour < 12) label = `${hour}AM`;
         else if (hour === 12) label = "12PM";
         else label = `${hour - 12}PM`;
-        
+
         completeHourlyData.push({
           hour,
           games: existingData?.games || 0,
@@ -352,23 +408,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const today = new Date();
       const weeklyData = [];
-      
+
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(date.getDate() - i);
-        
+
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
-        
+
         const stats = await storage.getSalesStats(startOfDay, endOfDay);
-        
+
         weeklyData.push({
           day: i,
           games: stats.totalGames,
           revenue: stats.totalRevenue,
-          label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          label: date.toLocaleDateString("en-US", { weekday: "short" }),
         });
       }
 
@@ -383,19 +439,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const today = new Date();
       const monthlyData = [];
-      
+
       // Get last 30 days, group by week
       for (let week = 3; week >= 0; week--) {
         const weekStart = new Date(today);
         weekStart.setDate(weekStart.getDate() - (week * 7 + 6));
         weekStart.setHours(0, 0, 0, 0);
-        
+
         const weekEnd = new Date(today);
-        weekEnd.setDate(weekEnd.getDate() - (week * 7));
+        weekEnd.setDate(weekEnd.getDate() - week * 7);
         weekEnd.setHours(23, 59, 59, 999);
-        
+
         const stats = await storage.getSalesStats(weekStart, weekEnd);
-        
+
         monthlyData.push({
           week: 3 - week,
           games: stats.totalGames,
@@ -440,20 +496,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { date } = req.query;
       const targetDate = date ? new Date(date as string) : new Date();
-      
+
       const startOfDay = new Date(targetDate);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(targetDate);
       endOfDay.setHours(23, 59, 59, 999);
 
       const games = await storage.getGamesByDateRange(startOfDay, endOfDay);
-      
-      const transactions = games.map(game => ({
+
+      const transactions = games.map((game) => ({
         id: game.id,
-        time: new Date(game.completedAt).toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit', 
-          hour12: true 
+        time: new Date(game.completedAt).toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
         }),
         player: game.playerNames[0] || "Unknown",
         playerCount: game.playerCount,
