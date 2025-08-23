@@ -35,16 +35,6 @@ export default function Landing() {
       >
         <GolfAnimation />
         
-        {/* Title */}
-        <motion.h1 
-          className="text-5xl md:text-6xl text-golf-green mb-4 font-bold"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-        >
-          Madras Mini Golf
-        </motion.h1>
-        
         <motion.p 
           className="text-xl text-golf-dark mb-8 max-w-md mx-auto"
           initial={{ opacity: 0 }}
