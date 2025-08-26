@@ -8,6 +8,18 @@ console.log("Node version:", process.version);
 console.log("DATABASE_URL:", process.env.DATABASE_URL ? "Set" : "Not set");
 console.log("PORT:", process.env.PORT || "Not set (will default to 5000)");
 
+// Debug database type
+if (process.env.DATABASE_URL) {
+  const url = process.env.DATABASE_URL;
+  if (url.includes("neon.tech") || url.includes("neon.database")) {
+    console.log("Database type: Neon");
+  } else if (url.includes("railway") || url.includes("proxy.rlwy.net")) {
+    console.log("Database type: Railway (SSL disabled)");
+  } else {
+    console.log("Database type: Other PostgreSQL (SSL disabled)");
+  }
+}
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

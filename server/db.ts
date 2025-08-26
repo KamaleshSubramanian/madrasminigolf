@@ -11,11 +11,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Detect if we're using Neon or local PostgreSQL
+// Detect if we're using Neon or Railway PostgreSQL
 const isNeonDatabase =
   process.env.DATABASE_URL.includes("neon.tech") ||
-  process.env.DATABASE_URL.includes("neon.database") ||
-  process.env.NODE_ENV === "production";
+  process.env.DATABASE_URL.includes("neon.database");
+
+const isRailwayDatabase =
+  process.env.DATABASE_URL.includes("railway") ||
+  process.env.DATABASE_URL.includes("proxy.rlwy.net");
 
 let pool: NeonPool | NodePool;
 let db: ReturnType<typeof drizzleNeon> | ReturnType<typeof drizzleNode>;
@@ -26,9 +29,13 @@ if (isNeonDatabase) {
   pool = new NeonPool({ connectionString: process.env.DATABASE_URL });
   db = drizzleNeon({ client: pool, schema });
 } else {
-  // Railway PostgreSQL configuration with SSL handling
+  // Railway or Local PostgreSQL configuration
   const connectionString = process.env.DATABASE_URL;
-  const sslConfig = connectionString?.includes("railway")
+
+  // For Railway databases, disable SSL certificate verification
+  const sslConfig = isRailwayDatabase
+    ? { rejectUnauthorized: false }
+    : connectionString?.startsWith("postgres://")
     ? { rejectUnauthorized: false }
     : undefined;
 
