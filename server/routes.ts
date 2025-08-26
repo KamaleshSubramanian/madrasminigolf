@@ -180,23 +180,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
 
+      console.log("Login attempt:", { username, password: "***" });
+
       if (!username || !password) {
         return res
           .status(400)
           .json({ message: "Username and password required" });
       }
 
-      console.log("Login attempt:", { username, password: "***" });
-
       const user = await storage.getUserByUsername(username);
-
       console.log("User found:", user ? "Yes" : "No");
+
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      console.log("Comparing password with hash...");
       const isValid = await bcrypt.compare(password, user.password);
+      console.log("Password valid:", isValid);
+
       if (!isValid) {
+        // Create a fresh hash for comparison
+        const testHash = await bcrypt.hash("admin123", 10);
+        console.log("Test hash for admin123:", testHash);
+        console.log("Database hash:", user.password);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
@@ -206,6 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: { id: user.id, username: user.username },
       });
     } catch (error: any) {
+      console.error("Login error:", error);
       res.status(500).json({ message: error.message });
     }
   });
