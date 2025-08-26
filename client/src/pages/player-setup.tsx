@@ -41,6 +41,8 @@ export default function PlayerSetup() {
       // Store game data and player names for gameplay
       sessionStorage.setItem("currentGame", JSON.stringify(game));
       sessionStorage.setItem("playerNames", JSON.stringify(playerNames.filter(name => name.trim())));
+      // Store game start time for duration calculation
+      sessionStorage.setItem("gameStartTime", new Date().toISOString());
       navigate(`/game/${game.id}`);
     },
     onError: () => {

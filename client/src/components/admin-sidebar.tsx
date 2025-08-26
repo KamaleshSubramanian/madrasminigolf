@@ -3,8 +3,6 @@ import {
   LayoutDashboard, 
   TrendingUp, 
   Tag, 
-  Users, 
-  Settings,
   Menu,
   X
 } from "lucide-react";
@@ -23,8 +21,6 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
     { path: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { path: "/admin/sales", icon: TrendingUp, label: "Sales" },
     { path: "/admin/pricing", icon: Tag, label: "Pricing" },
-    { path: "/admin/players", icon: Users, label: "Players" },
-    { path: "/admin/settings", icon: Settings, label: "Settings" },
   ];
 
   return (

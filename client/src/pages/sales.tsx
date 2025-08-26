@@ -2,18 +2,38 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import GolfLoader from "@/components/golf-loader";
 import AdminSidebar from "@/components/admin-sidebar";
-import { Download, LogOut, TrendingUp, BarChart3 } from "lucide-react";
+import { Download, LogOut, TrendingUp, BarChart3, Calendar } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { DayPicker, DateRange } from "react-day-picker";
+import "react-day-picker/dist/style.css";
+import { format } from "date-fns";
 
 export default function Sales() {
   const [, navigate] = useLocation();
-  const [selectedPeriod, setSelectedPeriod] = useState<"today" | "week" | "month">("today");
+  const [selectedPeriod, setSelectedPeriod] = useState<"today" | "week" | "month" | "custom">("today");
   const [chartType, setChartType] = useState<"line" | "bar">("line");
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  
+  // Function to handle period change and auto-set past 7 days for custom
+  const handlePeriodChange = (period: "today" | "week" | "month" | "custom") => {
+    setSelectedPeriod(period);
+    if (period === "custom") {
+      const today = new Date();
+      const startDate = new Date(today);
+      
+      // Set start date to 7 days ago
+      startDate.setDate(today.getDate() - 7);
+      
+      setDateRange({ from: startDate, to: today });
+    }
+  };
 
   // Check authentication
   const { data: user, isLoading: userLoading, error } = useQuery({
@@ -22,8 +42,13 @@ export default function Sales() {
   });
 
   const { data: salesData, isLoading: salesLoading } = useQuery({
-    queryKey: ["/api/admin/sales", selectedPeriod === "today" ? "day" : selectedPeriod],
-    enabled: !!user,
+    queryKey: selectedPeriod === "custom" ? 
+      ["/api/admin/sales/custom", dateRange.from, dateRange.to] :
+      ["/api/admin/sales", selectedPeriod === "today" ? "day" : selectedPeriod],
+    queryFn: selectedPeriod === "custom" && dateRange.from && dateRange.to ? 
+      () => apiRequest("GET", `/api/admin/sales/custom?from=${format(dateRange.from!, 'yyyy-MM-dd')}&to=${format(dateRange.to!, 'yyyy-MM-dd')}`) :
+      undefined,
+    enabled: !!user && (selectedPeriod !== "custom" || Boolean(dateRange.from && dateRange.to)),
   });
 
   const { data: hourlyData, isLoading: hourlyLoading } = useQuery({
@@ -41,17 +66,42 @@ export default function Sales() {
     enabled: !!user && selectedPeriod === "month",
   });
 
-  const { data: transactions, isLoading: transactionsLoading } = useQuery({
-    queryKey: ["/api/admin/transactions"],
-    enabled: !!user,
+  const { data: customData, isLoading: customLoading, error: customError } = useQuery({
+    queryKey: ["/api/admin/custom-sales", selectedPeriod, dateRange.from, dateRange.to],
+    queryFn: async () => {
+      if (dateRange.from && dateRange.to) {
+        const response = await fetch(`/api/admin/custom-sales?from=${format(dateRange.from!, 'yyyy-MM-dd')}&to=${format(dateRange.to!, 'yyyy-MM-dd')}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      }
+      return null;
+    },
+    enabled: !!user && selectedPeriod === "custom" && Boolean(dateRange.from && dateRange.to),
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/admin/logout"),
-    onSuccess: () => {
-      navigate("/admin");
-    },
+  const { data: transactions, isLoading: transactionsLoading } = useQuery({
+    queryKey: selectedPeriod === "custom" ? 
+      ["/api/admin/transactions", "custom", dateRange.from, dateRange.to] : 
+      ["/api/admin/transactions"],
+    queryFn: selectedPeriod === "custom" && dateRange.from && dateRange.to ? 
+      () => apiRequest("GET", `/api/admin/transactions?from=${format(dateRange.from!, 'yyyy-MM-dd')}&to=${format(dateRange.to!, 'yyyy-MM-dd')}`) :
+      undefined,
+    enabled: !!user && (selectedPeriod !== "custom" || Boolean(dateRange.from && dateRange.to)),
   });
+
+  const handleLogout = async () => {
+    try {
+      // Navigate immediately - don't wait for API response
+      window.location.replace("/admin");
+      // Call logout API in background
+      await apiRequest("POST", "/api/admin/logout");
+    } catch (error) {
+      // If API fails, still navigate
+      window.location.replace("/admin");
+    }
+  };
 
   useEffect(() => {
     if (error && !userLoading) {
@@ -100,14 +150,13 @@ export default function Sales() {
               <p className="text-sm md:text-base text-gray-600">Track your revenue and game performance</p>
             </div>
             <Button
-              onClick={() => logoutMutation.mutate()}
+              onClick={handleLogout}
               variant="outline"
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 self-start md:self-auto"
-              disabled={logoutMutation.isPending}
               size="sm"
             >
               <LogOut className="h-4 w-4" />
-              {logoutMutation.isPending ? "Logging out..." : "Logout"}
+              Logout
             </Button>
           </div>
         </header>
@@ -119,18 +168,61 @@ export default function Sales() {
         <Card className="shadow-md p-4 md:p-6 mb-6 md:mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <h3 className="text-lg font-semibold text-gray-800">Select Time Period</h3>
-            <div className="flex flex-wrap gap-2">
-              {["today", "week", "month"].map((period) => (
-                <Button
-                  key={period}
-                  variant={selectedPeriod === period ? "default" : "outline"}
-                  className={selectedPeriod === period ? "bg-golf-green text-white" : ""}
-                  onClick={() => setSelectedPeriod(period as "today" | "week" | "month")}
-                  size="sm"
-                >
-                  {period.charAt(0).toUpperCase() + period.slice(1)}
-                </Button>
-              ))}
+            <div className="flex flex-col md:flex-row gap-4 md:items-center">
+              <div className="flex flex-wrap gap-2">
+                {["today", "week", "month", "custom"].map((period) => (
+                  <Button
+                    key={period}
+                    variant={selectedPeriod === period ? "default" : "outline"}
+                    className={selectedPeriod === period ? "bg-golf-green text-white" : ""}
+                    onClick={() => handlePeriodChange(period as "today" | "week" | "month" | "custom")}
+                    size="sm"
+                  >
+                    {period === "custom" ? (
+                      <>
+                        <Calendar className="h-4 w-4 mr-1" />
+                        Date Range
+                      </>
+                    ) : (
+                      period.charAt(0).toUpperCase() + period.slice(1)
+                    )}
+                  </Button>
+                ))}
+              </div>
+              
+              {/* Date Range Picker */}
+              {selectedPeriod === "custom" && (
+                <div className="flex gap-2 items-center">
+                  <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-64 justify-start text-left font-normal">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {dateRange.from && dateRange.to ? (
+                          `${format(dateRange.from, "MMM dd, yyyy")} - ${format(dateRange.to, "MMM dd, yyyy")}`
+                        ) : dateRange.from ? (
+                          format(dateRange.from, "MMM dd, yyyy")
+                        ) : (
+                          "Select date range"
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <DayPicker
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={(range: DateRange | undefined) => {
+                          setDateRange(range || { from: undefined, to: undefined });
+                          if (range?.from && range?.to) {
+                            setIsDatePickerOpen(false);
+                          }
+                        }}
+                        disabled={(date) => date > new Date()}
+                        className="p-3"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -140,7 +232,10 @@ export default function Sales() {
           <Card className="shadow-md">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                {selectedPeriod === "today" ? "Today's" : selectedPeriod === "week" ? "Weekly" : "Monthly"} Summary
+                {selectedPeriod === "today" ? "Today's" : 
+                 selectedPeriod === "week" ? "Weekly" : 
+                 selectedPeriod === "month" ? "Monthly" :
+                 dateRange.from && dateRange.to ? `${format(dateRange.from, "MMM dd")} - ${format(dateRange.to, "MMM dd, yyyy")}` : "Custom Range"} Summary
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between">
@@ -178,7 +273,8 @@ export default function Sales() {
                 <h3 className="text-lg font-semibold text-gray-800">
                   {selectedPeriod === "today" ? "Hourly Revenue" : 
                    selectedPeriod === "week" ? "Daily Revenue (This Week)" : 
-                   "Daily Revenue (This Month)"}
+                   selectedPeriod === "month" ? "Daily Revenue (This Month)" :
+                   dateRange.from && dateRange.to ? `Daily Revenue (${format(dateRange.from, "MMM dd")} - ${format(dateRange.to, "MMM dd, yyyy")})` : "Daily Revenue"}
                 </h3>
                 <div className="flex space-x-1 bg-gray-100 rounded-md p-1">
                   <Button
@@ -202,13 +298,16 @@ export default function Sales() {
               <div className="h-64">
                 {(selectedPeriod === "today" && hourlyLoading) || 
                  (selectedPeriod === "week" && weeklyLoading) || 
-                 (selectedPeriod === "month" && monthlyLoading) ? (
+                 (selectedPeriod === "month" && monthlyLoading) ||
+                 (selectedPeriod === "custom" && customLoading) ? (
                   <div className="flex items-center justify-center w-full h-full">
                     <GolfLoader text="Loading chart data" size="md" />
                   </div>
-                ) : (() => {
+) : (() => {
                   const currentData = selectedPeriod === "today" ? hourlyData : 
-                                    selectedPeriod === "week" ? weeklyData : monthlyData;
+                                    selectedPeriod === "week" ? weeklyData : 
+                                    selectedPeriod === "month" ? monthlyData : customData;
+                  
                   
                   if (!currentData || !Array.isArray(currentData) || currentData.length === 0) {
                     return (
@@ -226,18 +325,23 @@ export default function Sales() {
                       const revenueStr = data.revenue || "0";
                       revenue = parseFloat(revenueStr.toString().replace(/[₹,]/g, ''));
                     } else {
-                      // For weekly/monthly data
+                      // For weekly/monthly/custom data
                       revenue = parseFloat(data.revenue || "0");
                     }
                     
-                    return {
+                    const chartPoint = {
                       name: selectedPeriod === "today" ? 
                         data.label || `${data.hour}:00` : // Use label from API for today
-                        data.label || `Day ${data.day}`, // Date label for week/month
+                        selectedPeriod === "custom" ? 
+                          data.fullDate || data.label : // Use fullDate for custom range
+                          data.label || `Day ${data.day}`, // Date label for week/month
                       revenue: revenue,
                       displayRevenue: `₹${revenue.toLocaleString()}`
                     };
+                    
+                    return chartPoint;
                   });
+                  
                   
 
                   
@@ -317,7 +421,11 @@ export default function Sales() {
         <Card className="shadow-md">
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-gray-800">Today's Transactions</h3>
+              <h3 className="text-lg font-semibold text-gray-800">{
+                selectedPeriod === "custom" && dateRange.from && dateRange.to
+                  ? `${format(dateRange.from, "MMM dd")} - ${format(dateRange.to, "MMM dd, yyyy")} Transactions`
+                  : "Today's Transactions"
+              }</h3>
               <Button 
                 onClick={handleExport}
                 className="bg-golf-green text-white hover:bg-golf-light"

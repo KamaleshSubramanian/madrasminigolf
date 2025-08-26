@@ -126,6 +126,9 @@ export default function Gameplay() {
         strokes: updatedTotalScores[playerName],
       }));
 
+      // Store local completion time
+      const completionTime = new Date().toISOString();
+      sessionStorage.setItem('gameCompletionTime', completionTime);
       saveScoresMutation.mutate(scoresData);
     } else {
       // Move to next hole

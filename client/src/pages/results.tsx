@@ -19,6 +19,7 @@ export default function Results() {
 
   const { data: gameData, isLoading } = useQuery({
     queryKey: ["/api/games", gameId],
+    enabled: !!gameId,
   });
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function Results() {
       // Calculate total scores for each player
       const scoresByPlayer: { [playerName: string]: { [hole: number]: number } } = {};
       
-      gameData.scores?.forEach((score: any) => {
+      (gameData as any)?.scores?.forEach((score: any) => {
         if (!scoresByPlayer[score.playerName]) {
           scoresByPlayer[score.playerName] = {};
         }
@@ -159,21 +160,31 @@ export default function Results() {
                 <div className="flex justify-between">
                   <span className="text-golf-dark">Date:</span>
                   <span className="font-semibold">
-                    {gameData.completedAt ? new Date(gameData.completedAt).toLocaleDateString() : new Date().toLocaleDateString()}
+                    {(() => {
+                      const gameCompletionTime = sessionStorage.getItem('gameCompletionTime');
+                      if (gameCompletionTime) {
+                        return new Date(gameCompletionTime).toLocaleDateString();
+                      }
+                      return new Date().toLocaleDateString();
+                    })()}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-golf-dark">Time:</span>
+                  <span className="text-golf-dark">Duration:</span>
                   <span className="font-semibold">
-                    {gameData.completedAt ? new Date(gameData.completedAt).toLocaleTimeString('en-US', { 
-                      hour: 'numeric', 
-                      minute: '2-digit', 
-                      hour12: true 
-                    }) : new Date().toLocaleTimeString('en-US', { 
-                      hour: 'numeric', 
-                      minute: '2-digit', 
-                      hour12: true 
-                    })}
+                    {(() => {
+                      const gameStartTime = sessionStorage.getItem('gameStartTime');
+                      const gameCompletionTime = sessionStorage.getItem('gameCompletionTime');
+                      if (gameStartTime && gameCompletionTime) {
+                        const startTime = new Date(gameStartTime);
+                        const endTime = new Date(gameCompletionTime);
+                        const durationMs = endTime.getTime() - startTime.getTime();
+                        const minutes = Math.floor(durationMs / (1000 * 60));
+                        const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
+                        return `${minutes} ${seconds}`;
+                      }
+                      return 'N/A';
+                    })()} 
                   </span>
                 </div>
               </div>

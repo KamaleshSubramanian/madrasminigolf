@@ -74,7 +74,7 @@ export class DatabaseStorage implements IStorage {
     return player || undefined;
   }
 
-  async createGame(insertGame: InsertGame): Promise<Game> {
+  async createGame(insertGame: any): Promise<Game> {
     const [game] = await db
       .insert(games)
       .values(insertGame)
@@ -88,7 +88,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGames(startDate?: Date, endDate?: Date): Promise<Game[]> {
-    let query = db.select().from(games);
+    let query = db.select().from(games) as any;
     
     if (startDate && endDate) {
       query = query.where(and(

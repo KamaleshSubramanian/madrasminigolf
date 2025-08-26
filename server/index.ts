@@ -3,7 +3,7 @@ dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { serveStatic, log } from "./vite";
+import { serveStatic, log } from "./static";
 
 const app = express();
 app.use(express.json());
@@ -50,7 +50,7 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // always serve static built files
+  // Always serve static files (single environment)
   serveStatic(app);
 
   // ALWAYS serve the app on the port specified in the environment variable PORT

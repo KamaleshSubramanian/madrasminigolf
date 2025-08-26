@@ -8,6 +8,13 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (August 2025)
 
+## Single Environment Architecture (Latest)
+- **Date**: August 25, 2025
+- **Change**: Simplified project to run as single environment (no dev/prod split)
+- **Impact**: Always builds and serves static files, eliminates development/production complexity
+- **Benefits**: One consistent environment, simplified deployment, no environment-specific issues
+- **Technical**: Modified server/index.ts to always serve static files, single startup process
+
 ## Single Deployable Application Architecture
 - **Date**: August 17, 2025
 - **Change**: Converted project from separate frontend/backend to unified Node.js application
@@ -34,16 +41,13 @@ Preferred communication style: Simple, everyday language.
 ## Application Architecture
 This is a **single deployable Node.js application** that serves both frontend and backend:
 
-### Development Mode
-- **Frontend**: Vite dev server with HMR serves React application
-- **Backend**: Express server handles API routes and middleware
-- **Integration**: Both run on single port (5000) with Vite middleware integration
-
-### Production Mode  
-- **Unified Server**: Express serves built React app as static files + API routes
-- **Static Assets**: Built frontend bundled into dist/public/ directory
-- **Single Process**: One Node.js process handles all requests
-- **Deployment**: Single application package for easy hosting
+### Single Environment Mode (Current)
+- **Unified Server**: Always builds and serves React app as static files + API routes
+- **Static Assets**: Frontend automatically built into dist/public/ directory
+- **Single Process**: One consistent Node.js process handles all requests
+- **No Environment Split**: Eliminated development/production complexity
+- **Simple Startup**: Build → Serve, no conditional logic
+- **Deployment**: Single application package for any hosting platform
 
 ## Frontend Architecture
 The client-side application is built with React and TypeScript:

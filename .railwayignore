@@ -1,0 +1,14 @@
+node_modules
+.git
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+client/src
+server/vite.ts
+start-single.js
+run.js
+scripts/local-dev.sh
+scripts/setup-local.js
+LOCAL_SETUP.md

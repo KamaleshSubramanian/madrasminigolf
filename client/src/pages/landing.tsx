@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import GolfAnimation from "@/components/golf-animation";
+import logoImage from "@assets/madrasminigolf_1755968122358_1755977982502.png";
 import { motion } from "framer-motion";
 import { Play, QrCode, Settings } from "lucide-react";
 
@@ -33,7 +33,19 @@ export default function Landing() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <GolfAnimation />
+        <motion.div
+          className="mb-8 flex items-center justify-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <img 
+            src={logoImage} 
+            alt="Madras Mini Golf" 
+            className="w-64 h-64 object-contain"
+          />
+        </motion.div>
+        
         
         <motion.p 
           className="text-xl text-golf-dark mb-8 max-w-md mx-auto"
