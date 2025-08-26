@@ -19,7 +19,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-golf-cream to-green-100 flex items-center justify-center p-4 relative">
       {/* Admin Toggle Button */}
-      <motion.div
+      {/* <motion.div
         className="absolute top-4 right-4"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -34,7 +34,7 @@ export default function Landing() {
           <Settings className="mr-2 h-4 w-4" />
           Admin
         </Button>
-      </motion.div>
+      </motion.div> */}
 
       <motion.div
         className="text-center"
