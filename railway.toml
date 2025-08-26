@@ -3,6 +3,3 @@ command = "npm run build"
 
 [deploy]
 startCommand = "node dist/index.js"
-
-[env]
-NODE_ENV = "production"
