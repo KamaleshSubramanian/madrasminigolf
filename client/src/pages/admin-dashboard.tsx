@@ -27,17 +27,26 @@ export default function AdminDashboard() {
     enabled: !!user,
   });
 
-  const handleLogout = async () => {
-    try {
-      // Navigate immediately - don't wait for API response
-      window.location.replace("/admin");
-      // Call logout API in background
-      await apiRequest("POST", "/api/admin/logout");
-    } catch (error) {
-      // If API fails, still navigate
-      window.location.replace("/admin");
-    }
-  };
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/logout"),
+    onSuccess: () => {
+      // Clear all auth-related queries from cache
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] });
+      queryClient.removeQueries({ queryKey: ["/api/admin/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/recent-games"] });
+      
+      // Navigate to login page
+      navigate("/admin");
+    },
+    onError: (error: any) => {
+      console.error("Logout failed:", error);
+      // Even if logout fails, clear cache and navigate
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] });
+      queryClient.removeQueries({ queryKey: ["/api/admin/me"] });
+      navigate("/admin");
+    },
+  });
 
   useEffect(() => {
     if (error && !userLoading) {
@@ -67,13 +76,14 @@ export default function AdminDashboard() {
               <p className="text-sm md:text-base text-gray-600">Welcome back! Here's what's happening today.</p>
             </div>
             <Button
-              onClick={handleLogout}
+              onClick={() => logoutMutation.mutate()}
               variant="outline"
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 self-start md:self-auto"
+              disabled={logoutMutation.isPending}
               size="sm"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
             </Button>
           </div>
         </header>
@@ -193,7 +203,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-golf-green">{game.cost}</p>
-                      <p className="text-sm text-gray-600">45 min</p>
+                      <p className="text-sm text-gray-600">{game.duration || 'N/A'}</p>
                     </div>
                   </div>
                 ))

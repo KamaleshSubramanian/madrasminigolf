@@ -179,9 +179,17 @@ export default function Results() {
                         const startTime = new Date(gameStartTime);
                         const endTime = new Date(gameCompletionTime);
                         const durationMs = endTime.getTime() - startTime.getTime();
-                        const minutes = Math.floor(durationMs / (1000 * 60));
+                        
+                        const hours = Math.floor(durationMs / (1000 * 60 * 60));
+                        const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
-                        return `${minutes} ${seconds}`;
+                        
+                        const parts = [];
+                        if (hours > 0) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+                        if (minutes > 0) parts.push(`${minutes} ${minutes === 1 ? 'min' : 'mins'}`);
+                        if (seconds > 0) parts.push(`${seconds} ${seconds === 1 ? 'sec' : 'secs'}`);
+                        
+                        return parts.length > 0 ? parts.join(' ') : '0 secs';
                       }
                       return 'N/A';
                     })()} 

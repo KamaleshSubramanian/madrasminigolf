@@ -45,9 +45,18 @@ export default function Sales() {
     queryKey: selectedPeriod === "custom" ? 
       ["/api/admin/sales/custom", dateRange.from, dateRange.to] :
       ["/api/admin/sales", selectedPeriod === "today" ? "day" : selectedPeriod],
-    queryFn: selectedPeriod === "custom" && dateRange.from && dateRange.to ? 
-      () => apiRequest("GET", `/api/admin/sales/custom?from=${format(dateRange.from!, 'yyyy-MM-dd')}&to=${format(dateRange.to!, 'yyyy-MM-dd')}`) :
-      undefined,
+    queryFn: async () => {
+      if (selectedPeriod === "custom" && dateRange.from && dateRange.to) {
+        const response = await fetch(`/api/admin/sales/custom?from=${format(dateRange.from!, 'yyyy-MM-dd')}&to=${format(dateRange.to!, 'yyyy-MM-dd')}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      } else if (selectedPeriod !== "custom") {
+        const response = await fetch(`/api/admin/sales/${selectedPeriod === "today" ? "day" : selectedPeriod}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      }
+      return null;
+    },
     enabled: !!user && (selectedPeriod !== "custom" || Boolean(dateRange.from && dateRange.to)),
   });
 
@@ -84,24 +93,45 @@ export default function Sales() {
   const { data: transactions, isLoading: transactionsLoading } = useQuery({
     queryKey: selectedPeriod === "custom" ? 
       ["/api/admin/transactions", "custom", dateRange.from, dateRange.to] : 
-      ["/api/admin/transactions"],
-    queryFn: selectedPeriod === "custom" && dateRange.from && dateRange.to ? 
-      () => apiRequest("GET", `/api/admin/transactions?from=${format(dateRange.from!, 'yyyy-MM-dd')}&to=${format(dateRange.to!, 'yyyy-MM-dd')}`) :
-      undefined,
-    enabled: !!user && (selectedPeriod !== "custom" || Boolean(dateRange.from && dateRange.to)),
+      ["/api/admin/transactions", selectedPeriod],
+    queryFn: async () => {
+      if (selectedPeriod === "custom" && dateRange.from && dateRange.to) {
+        const response = await fetch(`/api/admin/transactions?from=${format(dateRange.from!, 'yyyy-MM-dd')}&to=${format(dateRange.to!, 'yyyy-MM-dd')}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      } else if (selectedPeriod === "today") {
+        const response = await fetch(`/api/admin/transactions?date=${format(new Date(), 'yyyy-MM-dd')}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      } else {
+        const response = await fetch('/api/admin/transactions');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      }
+    },
+    enabled: !!user,
   });
 
-  const handleLogout = async () => {
-    try {
-      // Navigate immediately - don't wait for API response
-      window.location.replace("/admin");
-      // Call logout API in background
-      await apiRequest("POST", "/api/admin/logout");
-    } catch (error) {
-      // If API fails, still navigate
-      window.location.replace("/admin");
-    }
-  };
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/logout"),
+    onSuccess: () => {
+      // Clear all auth-related queries from cache
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] });
+      queryClient.removeQueries({ queryKey: ["/api/admin/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/recent-games"] });
+      
+      // Navigate to login page
+      navigate("/admin");
+    },
+    onError: (error: any) => {
+      console.error("Logout failed:", error);
+      // Even if logout fails, clear cache and navigate
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] });
+      queryClient.removeQueries({ queryKey: ["/api/admin/me"] });
+      navigate("/admin");
+    },
+  });
 
   useEffect(() => {
     if (error && !userLoading) {
@@ -150,13 +180,14 @@ export default function Sales() {
               <p className="text-sm md:text-base text-gray-600">Track your revenue and game performance</p>
             </div>
             <Button
-              onClick={handleLogout}
+              onClick={() => logoutMutation.mutate()}
               variant="outline"
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 self-start md:self-auto"
+              disabled={logoutMutation.isPending}
               size="sm"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
             </Button>
           </div>
         </header>
@@ -308,8 +339,10 @@ export default function Sales() {
                                     selectedPeriod === "week" ? weeklyData : 
                                     selectedPeriod === "month" ? monthlyData : customData;
                   
+                  // Remove debug logs since issue is fixed
                   
                   if (!currentData || !Array.isArray(currentData) || currentData.length === 0) {
+                    console.log('No data condition met:', { currentData, isArray: Array.isArray(currentData), length: currentData?.length });
                     return (
                       <div className="flex items-center justify-center w-full h-full text-gray-500">
                         No data available for {selectedPeriod}
@@ -318,6 +351,7 @@ export default function Sales() {
                   }
 
                   // Transform data for chart
+                  console.log('Raw chart data for', selectedPeriod, ':', currentData);
                   const chartData = currentData.map((data: any) => {
                     let revenue = 0;
                     if (selectedPeriod === "today") {
@@ -339,9 +373,11 @@ export default function Sales() {
                       displayRevenue: `₹${revenue.toLocaleString()}`
                     };
                     
+                    console.log('Transformed chart point:', chartPoint);
                     return chartPoint;
                   });
                   
+                  console.log('Final chart data:', chartData);
                   
 
                   
