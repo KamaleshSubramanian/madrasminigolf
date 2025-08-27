@@ -14,18 +14,12 @@ import { insertPlayerSchema } from "@shared/schema";
 import { z } from "zod";
 import { ArrowRight, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import GolfLoader from "@/components/golf-loader";
 
 const registrationSchema = insertPlayerSchema.extend({
-  consent: z.boolean().refine((val) => val === true, {
+  email: z.string().optional(), // Override to make email optional
+  consent: z.boolean().refine(val => val === true, {
     message: "You must agree to the terms and conditions",
   }),
 });
@@ -61,33 +55,33 @@ export default function Registration() {
     },
   });
 
-  // Load saved form data when component mounts
+  // Clear form data and reset when component mounts (user clicks "Start Game")
   useEffect(() => {
-    const savedData = loadFormData();
-    if (savedData) {
-      form.reset({
-        name: savedData.name || "",
-        contact: savedData.contact || "",
-        email: savedData.email || "",
-        consent: savedData.consent || false,
-      });
-    }
+    // Clear any saved form data to reset the form
+    sessionStorage.removeItem("registrationFormData");
+    // Reset form to empty state
+    form.reset({
+      name: "",
+      contact: "",
+      email: "",
+      consent: false,
+    });
   }, [form]);
 
   // Also check for updates when component becomes visible (user returns from terms)
   useEffect(() => {
     const handleFocus = () => {
       const savedData = loadFormData();
-      if (savedData && typeof savedData.consent !== "undefined") {
-        form.setValue("consent", savedData.consent);
+      if (savedData && typeof savedData.consent !== 'undefined') {
+        form.setValue('consent', savedData.consent);
       }
     };
-
-    window.addEventListener("focus", handleFocus);
+    
+    window.addEventListener('focus', handleFocus);
     // Also run when component mounts/becomes visible
     handleFocus();
-
-    return () => window.removeEventListener("focus", handleFocus);
+    
+    return () => window.removeEventListener('focus', handleFocus);
   }, [form]);
 
   // Save form data when values change
@@ -106,7 +100,7 @@ export default function Registration() {
   };
 
   const registerMutation = useMutation({
-    mutationFn: (data: Omit<RegistrationForm, "consent">) =>
+    mutationFn: (data: Omit<RegistrationForm, "consent">) => 
       apiRequest("POST", "/api/players", data),
     onSuccess: async (response) => {
       const player = await response.json();
@@ -117,8 +111,7 @@ export default function Registration() {
     onError: () => {
       toast({
         title: "Registration failed",
-        description:
-          "There was an error creating your account. Please try again.",
+        description: "There was an error creating your account. Please try again.",
         variant: "destructive",
       });
     },
@@ -154,12 +147,10 @@ export default function Registration() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-4xl mb-2">📝</div>
-          <h2 className="text-2xl font-bold text-golf-dark">
-            Player Registration
-          </h2>
+          <h2 className="text-2xl font-bold text-golf-dark">Player Registration</h2>
           <p className="text-golf-dark opacity-75">Let's get to know you!</p>
         </div>
-
+        
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between text-sm text-golf-dark mb-2">
@@ -168,26 +159,21 @@ export default function Registration() {
           </div>
           <Progress value={33} className="h-2" />
         </div>
-
+        
         {/* Registration Form */}
         <Card className="shadow-lg">
           <CardContent className="p-6">
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-golf-dark font-medium">
-                        Full Name *
-                      </FormLabel>
+                      <FormLabel className="text-golf-dark font-medium">Full Name *</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Enter your full name"
+                        <Input 
+                          placeholder="Enter your full name" 
                           className="border-2 border-gray-200 focus:border-golf-green"
                           {...field}
                         />
@@ -196,18 +182,16 @@ export default function Registration() {
                     </FormItem>
                   )}
                 />
-
+                
                 <FormField
                   control={form.control}
                   name="contact"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-golf-dark font-medium">
-                        Contact Number *
-                      </FormLabel>
+                      <FormLabel className="text-golf-dark font-medium">Contact Number *</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="+91 9876543210"
+                        <Input 
+                          placeholder="+91 9876543210" 
                           className="border-2 border-gray-200 focus:border-golf-green"
                           {...field}
                         />
@@ -216,36 +200,33 @@ export default function Registration() {
                     </FormItem>
                   )}
                 />
-
+                
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-golf-dark font-medium">
-                        Email Address (Optional)
-                      </FormLabel>
+                      <FormLabel className="text-golf-dark font-medium">Email Address (optional)</FormLabel>
                       <FormControl>
-                        <Input
+                        <Input 
                           type="email"
-                          placeholder="your.email@example.com"
+                          placeholder="your.email@example.com" 
                           className="border-2 border-gray-200 focus:border-golf-green"
                           {...field}
-                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
+                
                 <FormField
                   control={form.control}
                   name="consent"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                       <FormControl>
-                        <Checkbox
+                        <Checkbox 
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -253,7 +234,7 @@ export default function Registration() {
                       <div className="space-y-1 leading-none">
                         <FormLabel className="text-sm text-golf-dark">
                           I agree to the{" "}
-                          <button
+                          <button 
                             type="button"
                             onClick={handleTermsClick}
                             className="text-golf-green underline hover:text-golf-light transition-colors inline-flex items-center gap-1"
@@ -261,28 +242,26 @@ export default function Registration() {
                           >
                             <FileText className="h-3 w-3" />
                             Terms & Conditions
-                          </button>{" "}
-                          and consent to receive updates about my game.
+                          </button>
+                          {" "}and consent to receive updates about my game.
                         </FormLabel>
                         <FormMessage />
                       </div>
                     </FormItem>
                   )}
                 />
-
-                <Button
-                  type="submit"
+                
+                <Button 
+                  type="submit" 
                   className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3"
                   disabled={registerMutation.isPending}
                   data-testid="button-continue"
                 >
-                  {registerMutation.isPending
-                    ? "Registering..."
-                    : "Continue to Player Setup"}
+                  {registerMutation.isPending ? "Registering..." : "Continue to Player Setup"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-
-                <Button
+                
+                <Button 
                   type="button"
                   onClick={handleCancel}
                   variant="outline"
