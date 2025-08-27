@@ -95,7 +95,11 @@ export default function Landing() {
           transition={{ delay: 0.6, duration: 0.6 }}
         >
           <Button
-            onClick={() => navigate("/register")}
+            onClick={() => {
+              // Clear any existing registration data when starting fresh
+              sessionStorage.removeItem("registrationFormData");
+              navigate("/register");
+            }}
             size="lg"
             className="bg-golf-green hover:bg-golf-light text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all duration-300"
           >
