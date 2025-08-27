@@ -11,6 +11,7 @@ import { z } from "zod";
 import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
+import { Pool } from "pg";
 
 // Custom game creation schema without totalCost
 const createGameSchema = z.object({
@@ -31,12 +32,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   const PgSession = ConnectPgSimple(session);
 
+  // Only use pg Pool for sessions (not Neon serverless pool)
+  const sessionPool = pool instanceof Pool ? pool : undefined;
+
   app.use(
     session({
-      store: new PgSession({
-        pool: pool,
-        tableName: "session",
-      }),
+      store: sessionPool
+        ? new PgSession({
+            pool: sessionPool,
+            tableName: "session",
+          })
+        : undefined,
       secret: process.env.SESSION_SECRET || "your-secret-key-here",
       resave: false,
       saveUninitialized: false,
@@ -92,7 +98,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const playerData = insertPlayerSchema.parse(req.body);
       const player = await storage.createPlayer({
-        ...playerData,
+        name: playerData.name,
+        contact: playerData.contact,
+        email: playerData.email,
         createdAt: new Date(),
       });
       res.json(player);
@@ -124,7 +132,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const game = await storage.createGame({
         ...gameData,
         totalCost,
-        completedAt: gameStartTime,
+        startedAt: gameStartTime,
+        completedAt: gameStartTime, // Will be updated when game actually completes
       });
 
       res.json(game);
@@ -146,6 +155,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           storage.createScore({ ...scoreData, gameId })
         )
       );
+
+      // Update game completion time when scores are saved
+      await storage.updateGameCompletedAt(gameId, new Date());
 
       res.json(scores);
     } catch (error: any) {
@@ -343,6 +355,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const recentGames = await Promise.all(
         games.slice(0, 10).map(async (game) => {
           const player = await storage.getPlayer(game.playerId);
+
+          // Calculate exact or estimated duration
+          let durationText = "N/A";
+          if (game.startedAt && game.completedAt) {
+            // Calculate exact duration
+            const durationMs =
+              new Date(game.completedAt).getTime() -
+              new Date(game.startedAt).getTime();
+            const hours = Math.floor(durationMs / (1000 * 60 * 60));
+            const minutes = Math.floor(
+              (durationMs % (1000 * 60 * 60)) / (1000 * 60)
+            );
+            const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
+
+            const parts = [];
+            if (hours > 0)
+              parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
+            if (minutes > 0)
+              parts.push(`${minutes} ${minutes === 1 ? "min" : "mins"}`);
+            if (seconds > 0)
+              parts.push(`${seconds} ${seconds === 1 ? "sec" : "secs"}`);
+
+            durationText = parts.length > 0 ? parts.join(" ") : "0 secs";
+          } else {
+            // Fallback to estimated duration for older games
+            const estimatedMinutes = Math.round(game.playerCount * 7.5);
+            durationText =
+              estimatedMinutes === 1 ? "1 min" : `${estimatedMinutes} mins`;
+          }
+
           return {
             id: game.id,
             playerCount: game.playerCount,
@@ -354,7 +396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               hour12: true,
               timeZone: "Asia/Kolkata",
             }),
-            duration: "", // TODO: Calculate actual duration
+            duration: durationText,
           };
         })
       );
@@ -389,11 +431,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case "custom":
           const { from, to } = req.query;
           if (!from || !to) {
-            return res
-              .status(400)
-              .json({
-                message: "Start and end dates are required for custom period",
-              });
+            return res.status(400).json({
+              message: "Start and end dates are required for custom period",
+            });
           }
 
           const fromDate = new Date(from as string);
