@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import GolfLoader from "@/components/golf-loader";
 
-const pricingFormSchema = insertPricingSchema.omit({ updatedBy: true });
+const pricingFormSchema = insertPricingSchema.omit({ updatedBy: true, updatedAt: true });
 type PricingForm = z.infer<typeof pricingFormSchema>;
 
 export default function Pricing() {
@@ -102,6 +102,8 @@ export default function Pricing() {
   });
 
   const onSubmit = (data: PricingForm) => {
+    console.log("Form submitted with data:", data);
+    console.log("Form errors:", form.formState.errors);
     updatePricingMutation.mutate(data);
   };
 
@@ -217,83 +219,85 @@ export default function Pricing() {
             <h3 className="text-lg font-semibold text-gray-800 mb-6">Update Pricing</h3>
             
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="weekdayPrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-medium flex items-center">
-                        <Calendar className="mr-2 h-4 w-4 text-blue-600" />
-                        Weekday Price (Per Player)
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-3 text-gray-500">₹</span>
-                          <Input 
-                            type="number"
-                            step="0.01"
-                            placeholder="60.00"
-                            className="pl-8 pr-4 border-2 border-gray-200 focus:border-golf-green"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <p className="text-sm text-gray-600">Monday through Friday pricing</p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="weekdayPrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 font-medium flex items-center">
+                          <Calendar className="mr-2 h-4 w-4 text-blue-600" />
+                          Weekday Price (Per Player)
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-3 text-gray-500">₹</span>
+                            <Input 
+                              type="number"
+                              step="0.01"
+                              placeholder="60.00"
+                              className="pl-8 pr-4 border-2 border-gray-200 focus:border-golf-green"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <p className="text-sm text-gray-600">Monday through Friday pricing</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="weekendPrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 font-medium flex items-center">
+                          <CalendarDays className="mr-2 h-4 w-4 text-orange-600" />
+                          Weekend Price (Per Player)
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-3 text-gray-500">₹</span>
+                            <Input 
+                              type="number"
+                              step="0.01"
+                              placeholder="80.00"
+                              className="pl-8 pr-4 border-2 border-gray-200 focus:border-golf-green"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <p className="text-sm text-gray-600">Saturday and Sunday pricing</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="weekendPrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-medium flex items-center">
-                        <CalendarDays className="mr-2 h-4 w-4 text-orange-600" />
-                        Weekend Price (Per Player)
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-3 text-gray-500">₹</span>
-                          <Input 
-                            type="number"
-                            step="0.01"
-                            placeholder="80.00"
-                            className="pl-8 pr-4 border-2 border-gray-200 focus:border-golf-green"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <p className="text-sm text-gray-600">Saturday and Sunday pricing</p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-4">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={handleReset}
+                    className="px-6 py-2"
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Reset
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={updatePricingMutation.isPending}
+                    className="px-6 py-2 bg-golf-green text-white hover:bg-golf-light"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {updatePricingMutation.isPending ? "Updating..." : "Update Pricing"}
+                  </Button>
+                </div>
               </form>
             </Form>
-            
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-4 mt-6">
-              <Button 
-                type="button"
-                variant="outline"
-                onClick={handleReset}
-                className="px-6 py-2"
-              >
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Reset
-              </Button>
-              <Button 
-                onClick={form.handleSubmit(onSubmit)}
-                disabled={updatePricingMutation.isPending}
-                className="px-6 py-2 bg-golf-green text-white hover:bg-golf-light"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {updatePricingMutation.isPending ? "Updating..." : "Update Pricing"}
-              </Button>
-            </div>
           </CardContent>
         </Card>
         

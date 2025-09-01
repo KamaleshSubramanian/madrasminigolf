@@ -1,28 +1,16 @@
 import { sql, relations } from "drizzle-orm";
-import {
-  pgTable,
-  text,
-  varchar,
-  integer,
-  timestamp,
-  boolean,
-  decimal,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
 
 export const players = pgTable("players", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   contact: text("contact").notNull(),
   email: text("email"),
@@ -30,12 +18,8 @@ export const players = pgTable("players", {
 });
 
 export const games = pgTable("games", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  playerId: varchar("player_id")
-    .notNull()
-    .references(() => players.id),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  playerId: varchar("player_id").notNull().references(() => players.id),
   playerNames: text("player_names").array().notNull(),
   playerCount: integer("player_count").notNull(),
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
@@ -45,27 +29,19 @@ export const games = pgTable("games", {
 });
 
 export const scores = pgTable("scores", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  gameId: varchar("game_id")
-    .notNull()
-    .references(() => games.id),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id),
   playerName: text("player_name").notNull(),
   hole: integer("hole").notNull(),
   strokes: integer("strokes").notNull(),
 });
 
 export const pricing = pgTable("pricing", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   weekdayPrice: decimal("weekday_price", { precision: 10, scale: 2 }).notNull(),
   weekendPrice: decimal("weekend_price", { precision: 10, scale: 2 }).notNull(),
   updatedAt: timestamp("updated_at").notNull(),
-  updatedBy: varchar("updated_by")
-    .notNull()
-    .references(() => users.id),
+  updatedBy: varchar("updated_by").notNull().references(() => users.id),
 });
 
 // Relations
@@ -107,7 +83,7 @@ export const insertPlayerSchema = createInsertSchema(players).omit({
 
 export const insertGameSchema = createInsertSchema(games, {
   playerNames: z.array(z.string()).min(1),
-  playerCount: z.number().int().min(1).max(8),
+  playerCount: z.number().int().min(1).max(10),
   isWeekend: z.boolean(),
 }).omit({
   id: true,
@@ -122,7 +98,6 @@ export const insertScoreSchema = createInsertSchema(scores).omit({
 
 export const insertPricingSchema = createInsertSchema(pricing).omit({
   id: true,
-  updatedAt: true,
 });
 
 // Types

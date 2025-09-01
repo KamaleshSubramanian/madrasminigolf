@@ -126,8 +126,8 @@ export default function PlayerSetup() {
         <Card className="shadow-lg mb-6">
           <CardContent className="p-6">
             <h3 className="font-semibold text-golf-dark mb-4">Number of Players</h3>
-            <div className="grid grid-cols-4 gap-3">
-              {Array.from({ length: 8 }, (_, i) => i + 1).map(num => (
+            <div className="grid grid-cols-5 gap-3">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
                 <Button
                   key={num}
                   variant={selectedPlayerCount === num ? "default" : "outline"}
@@ -152,7 +152,7 @@ export default function PlayerSetup() {
             <div className="space-y-4">
               {Array.from({ length: selectedPlayerCount }, (_, i) => (
                 <div key={i} className="relative">
-                  <div className="absolute left-3 top-3 w-6 h-6 bg-golf-green text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-golf-green text-white rounded-full flex items-center justify-center text-sm font-bold">
                     {i + 1}
                   </div>
                   <Input
