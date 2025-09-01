@@ -18,6 +18,7 @@ export default function Gameplay() {
   const [playerNames, setPlayerNames] = useState<string[]>([]);
   const [totalScores, setTotalScores] = useState<{ [playerName: string]: number }>({});
   const [holeScores, setHoleScores] = useState<{ [playerName: string]: number }>({});
+  const [manualInputFocused, setManualInputFocused] = useState<{ [playerName: string]: boolean }>({});
 
   useEffect(() => {
     // Load player names and game data
@@ -83,8 +84,8 @@ export default function Gameplay() {
     }
     
     const strokeCount = parseInt(strokes);
-    // Validate range 1-20 (now allowing all strokes to be manually entered)
-    if (strokeCount >= 1 && strokeCount <= 20) {
+    // Validate range 1-40 (allowing high stroke counts)
+    if (strokeCount >= 1 && strokeCount <= 40) {
       setHoleScores(prev => ({
         ...prev,
         [playerName]: strokeCount,
@@ -249,10 +250,17 @@ export default function Gameplay() {
                   <div className="flex-shrink-0">
                     <Input
                       type="text"
-                      className="w-16 h-10 text-center border-2 border-gray-200 focus:border-golf-green text-sm font-bold"
+                      className="w-20 h-10 text-center border-2 border-gray-200 focus:border-golf-green text-sm font-bold"
                       onChange={(e) => handleManualScore(playerName, e.target.value)}
-                      value={holeScores[playerName] > 6 ? holeScores[playerName].toString() : ""}
+                      value={manualInputFocused[playerName] ? (holeScores[playerName] || "").toString() : (holeScores[playerName] >= 7 ? holeScores[playerName].toString() : "")}
                       placeholder="7+"
+                      maxLength={2}
+                      onFocus={() => {
+                        setManualInputFocused(prev => ({ ...prev, [playerName]: true }));
+                      }}
+                      onBlur={() => {
+                        setManualInputFocused(prev => ({ ...prev, [playerName]: false }));
+                      }}
                     />
                   </div>
                 </div>

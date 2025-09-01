@@ -10,6 +10,7 @@ import TermsAndConditions from "@/pages/terms-and-conditions";
 import PlayerSetup from "@/pages/player-setup";
 import Gameplay from "@/pages/gameplay";
 import Results from "@/pages/results";
+import ResultsShare from "@/pages/results-share";
 import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
 import Sales from "@/pages/sales";
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/players" component={PlayerSetup} />
       <Route path="/game/:gameId" component={Gameplay} />
       <Route path="/results/:gameId" component={Results} />
+      <Route path="/results/share/:gameId" component={ResultsShare} />
       
       {/* Admin Flow */}
       <Route path="/admin" component={AdminLogin} />

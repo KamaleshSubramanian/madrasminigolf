@@ -1,19 +1,10 @@
-import {
-  users,
-  players,
-  games,
-  scores,
-  pricing,
-  type User,
-  type InsertUser,
-  type Player,
-  type InsertPlayer,
-  type Game,
-  type InsertGame,
-  type Score,
-  type InsertScore,
-  type Pricing,
-  type InsertPricing,
+import { 
+  users, players, games, scores, pricing,
+  type User, type InsertUser,
+  type Player, type InsertPlayer,
+  type Game, type InsertGame,
+  type Score, type InsertScore,
+  type Pricing, type InsertPricing
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, gte, lte, and } from "drizzle-orm";
@@ -45,38 +36,11 @@ export interface IStorage {
   getPricingHistory(): Promise<Pricing[]>;
 
   // Analytics methods
-  getDailySales(
-    date: Date
-  ): Promise<{
-    totalGames: number;
-    totalRevenue: string;
-    totalPlayers: number;
-  }>;
-  getWeeklySales(
-    startDate: Date
-  ): Promise<{
-    totalGames: number;
-    totalRevenue: string;
-    totalPlayers: number;
-  }>;
-  getMonthlySales(
-    startDate: Date
-  ): Promise<{
-    totalGames: number;
-    totalRevenue: string;
-    totalPlayers: number;
-  }>;
-  getHourlySales(
-    date: Date
-  ): Promise<Array<{ hour: number; games: number; revenue: string }>>;
-  getSalesStats(
-    startDate: Date,
-    endDate: Date
-  ): Promise<{
-    totalGames: number;
-    totalRevenue: string;
-    totalPlayers: number;
-  }>;
+  getDailySales(date: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }>;
+  getWeeklySales(startDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }>;
+  getMonthlySales(startDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }>;
+  getHourlySales(date: Date): Promise<Array<{ hour: number; games: number; revenue: string }>>;
+  getSalesStats(startDate: Date, endDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -86,20 +50,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.username, username));
+    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async createPlayer(insertPlayer: any): Promise<Player> {
-    const [player] = await db.insert(players).values(insertPlayer).returning();
+    const [player] = await db
+      .insert(players)
+      .values(insertPlayer)
+      .returning();
     return player;
   }
 
@@ -109,7 +76,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createGame(insertGame: any): Promise<Game> {
-    const [game] = await db.insert(games).values(insertGame).returning();
+    const [game] = await db
+      .insert(games)
+      .values(insertGame)
+      .returning();
     return game;
   }
 
@@ -120,50 +90,49 @@ export class DatabaseStorage implements IStorage {
 
   async getGames(startDate?: Date, endDate?: Date): Promise<Game[]> {
     let query = db.select().from(games) as any;
-
+    
     if (startDate && endDate) {
-      query = query.where(
-        and(gte(games.completedAt, startDate), lte(games.completedAt, endDate))
-      );
+      query = query.where(and(
+        gte(games.completedAt, startDate),
+        lte(games.completedAt, endDate)
+      ));
     }
-
+    
     return await query.orderBy(desc(games.completedAt));
   }
 
   async getGamesByDateRange(startDate: Date, endDate: Date): Promise<Game[]> {
-    return await db
-      .select()
-      .from(games)
-      .where(
-        and(gte(games.completedAt, startDate), lte(games.completedAt, endDate))
-      )
+    return await db.select().from(games)
+      .where(and(
+        gte(games.completedAt, startDate),
+        lte(games.completedAt, endDate)
+      ))
       .orderBy(desc(games.completedAt));
   }
 
-  async updateGameCompletedAt(
-    gameId: string,
-    completedAt: Date
-  ): Promise<void> {
-    await db.update(games).set({ completedAt }).where(eq(games.id, gameId));
+  async updateGameCompletedAt(gameId: string, completedAt: Date): Promise<void> {
+    await db
+      .update(games)
+      .set({ completedAt })
+      .where(eq(games.id, gameId));
   }
 
   async createScore(insertScore: InsertScore): Promise<Score> {
-    const [score] = await db.insert(scores).values(insertScore).returning();
+    const [score] = await db
+      .insert(scores)
+      .values(insertScore)
+      .returning();
     return score;
   }
 
   async getScoresByGame(gameId: string): Promise<Score[]> {
-    return await db
-      .select()
-      .from(scores)
+    return await db.select().from(scores)
       .where(eq(scores.gameId, gameId))
       .orderBy(scores.hole, scores.playerName);
   }
 
   async getCurrentPricing(): Promise<Pricing | undefined> {
-    const [currentPricing] = await db
-      .select()
-      .from(pricing)
+    const [currentPricing] = await db.select().from(pricing)
       .orderBy(desc(pricing.updatedAt))
       .limit(1);
     return currentPricing || undefined;
@@ -178,16 +147,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPricingHistory(): Promise<Pricing[]> {
-    return await db.select().from(pricing).orderBy(desc(pricing.updatedAt));
+    return await db.select().from(pricing)
+      .orderBy(desc(pricing.updatedAt));
   }
 
-  async getDailySales(
-    date: Date
-  ): Promise<{
-    totalGames: number;
-    totalRevenue: string;
-    totalPlayers: number;
-  }> {
+  async getDailySales(date: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }> {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
@@ -200,12 +164,10 @@ export class DatabaseStorage implements IStorage {
         totalPlayers: sql<number>`sum(${games.playerCount})::int`,
       })
       .from(games)
-      .where(
-        and(
-          gte(games.completedAt, startOfDay),
-          lte(games.completedAt, endOfDay)
-        )
-      );
+      .where(and(
+        gte(games.completedAt, startOfDay),
+        lte(games.completedAt, endOfDay)
+      ));
 
     return {
       totalGames: result?.totalGames || 0,
@@ -214,13 +176,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getWeeklySales(
-    startDate: Date
-  ): Promise<{
-    totalGames: number;
-    totalRevenue: string;
-    totalPlayers: number;
-  }> {
+  async getWeeklySales(startDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }> {
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + 7);
 
@@ -231,9 +187,10 @@ export class DatabaseStorage implements IStorage {
         totalPlayers: sql<number>`sum(${games.playerCount})::int`,
       })
       .from(games)
-      .where(
-        and(gte(games.completedAt, startDate), lte(games.completedAt, endDate))
-      );
+      .where(and(
+        gte(games.completedAt, startDate),
+        lte(games.completedAt, endDate)
+      ));
 
     return {
       totalGames: result?.totalGames || 0,
@@ -242,13 +199,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getMonthlySales(
-    startDate: Date
-  ): Promise<{
-    totalGames: number;
-    totalRevenue: string;
-    totalPlayers: number;
-  }> {
+  async getMonthlySales(startDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }> {
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + 1);
 
@@ -259,9 +210,10 @@ export class DatabaseStorage implements IStorage {
         totalPlayers: sql<number>`sum(${games.playerCount})::int`,
       })
       .from(games)
-      .where(
-        and(gte(games.completedAt, startDate), lte(games.completedAt, endDate))
-      );
+      .where(and(
+        gte(games.completedAt, startDate),
+        lte(games.completedAt, endDate)
+      ));
 
     return {
       totalGames: result?.totalGames || 0,
@@ -270,9 +222,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getHourlySales(
-    date: Date
-  ): Promise<Array<{ hour: number; games: number; revenue: string }>> {
+  async getHourlySales(date: Date): Promise<Array<{ hour: number; games: number; revenue: string }>> {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
@@ -285,30 +235,21 @@ export class DatabaseStorage implements IStorage {
         revenue: sql<string>`sum(${games.totalCost})::text`,
       })
       .from(games)
-      .where(
-        and(
-          gte(games.completedAt, startOfDay),
-          lte(games.completedAt, endOfDay)
-        )
-      )
+      .where(and(
+        gte(games.completedAt, startOfDay),
+        lte(games.completedAt, endOfDay)
+      ))
       .groupBy(sql`extract(hour from ${games.completedAt})`)
       .orderBy(sql`extract(hour from ${games.completedAt})`);
 
-    return results.map((r) => ({
+    return results.map(r => ({
       hour: r.hour,
       games: r.games,
-      revenue: r.revenue || "0",
+      revenue: r.revenue || "0"
     }));
   }
 
-  async getSalesStats(
-    startDate: Date,
-    endDate: Date
-  ): Promise<{
-    totalGames: number;
-    totalRevenue: string;
-    totalPlayers: number;
-  }> {
+  async getSalesStats(startDate: Date, endDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }> {
     const [result] = await db
       .select({
         totalGames: sql<number>`count(*)::int`,
@@ -316,9 +257,10 @@ export class DatabaseStorage implements IStorage {
         totalPlayers: sql<number>`sum(${games.playerCount})::int`,
       })
       .from(games)
-      .where(
-        and(gte(games.completedAt, startDate), lte(games.completedAt, endDate))
-      );
+      .where(and(
+        gte(games.completedAt, startDate),
+        lte(games.completedAt, endDate)
+      ));
 
     return {
       totalGames: result?.totalGames || 0,

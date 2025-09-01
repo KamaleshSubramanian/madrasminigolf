@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import golfBallImage from "@assets/ball_1756661874929.png";
+import golfTeeImage from "@assets/Tpin_1756661874931.png";
 
 interface GolfLoaderProps {
   text?: string;
@@ -8,68 +10,82 @@ interface GolfLoaderProps {
 }
 
 export default function GolfLoader({ text = "Loading...", size = "md", className = "", overlay = false }: GolfLoaderProps) {
-  const sizeClasses = {
-    sm: "w-8 h-8",
-    md: "w-12 h-12", 
-    lg: "w-16 h-16"
+  const containerSize = {
+    sm: "w-24 h-20",
+    md: "w-40 h-32", 
+    lg: "w-48 h-36"
   };
 
   const ballSize = {
-    sm: "w-2 h-2",
-    md: "w-3 h-3",
-    lg: "w-4 h-4"
+    sm: "w-12 h-12",
+    md: "w-16 h-16",
+    lg: "w-18 h-18"
+  };
+
+  const teeSize = {
+    sm: "w-14 h-24",
+    md: "w-20 h-34",
+    lg: "w-24 h-40"
   };
 
   const textSize = {
-    sm: "text-sm",
-    md: "text-base",
-    lg: "text-lg"
+    sm: "text-lg",
+    md: "text-xl",
+    lg: "text-2xl"
   };
 
   const loaderContent = (
-    <div className={`flex flex-col items-center justify-center space-y-4 ${overlay ? 'relative z-50' : ''} ${className}`}>
-      {/* Golf Ball Animation */}
-      <div className={`relative ${sizeClasses[size]}`}>
-        {/* Golf Course/Hole */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2">
-          <div className="w-6 h-2 bg-golf-green rounded-full opacity-60"></div>
-          <div className="w-3 h-3 bg-gray-800 rounded-full mx-auto -mt-1"></div>
+    <div className={`flex flex-col items-center justify-center space-y-6 ${overlay ? 'relative z-50' : ''} ${className}`}>
+      {/* Golf Ball Rolling Over Tee Animation */}
+      <div className={`relative ${containerSize[size]} flex items-end justify-center`}>
+        {/* Golf Tee - Fixed in center */}
+        <div 
+          className="absolute bottom-0"
+          style={{
+            left: '50%',
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <img
+            src={golfTeeImage}
+            alt="Golf Tee"
+            className={`${teeSize[size]} object-contain`}
+          />
         </div>
         
-        {/* Animated Golf Ball */}
+        {/* Animated Golf Ball - Dribbling on the tee */}
         <motion.div
-          className={`${ballSize[size]} bg-white border-2 border-gray-300 rounded-full absolute shadow-sm`}
-          style={{
-            background: "radial-gradient(circle at 30% 30%, #ffffff, #f0f0f0)",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1), inset -1px -1px 2px rgba(0,0,0,0.1)"
-          }}
+          className="absolute"
           animate={{
-            x: [-20, -10, 0, 10, 20, 10, 0, -10, -20],
-            y: [0, -8, -16, -8, 0, -6, -12, -6, 0],
-            rotate: [0, -90, -180, -270, -360, -450, -540, -630, -720]
+            y: [0, -4, -8, -12, -8, -4, 0, 2, 0]
           }}
           transition={{
             duration: 2,
             repeat: Infinity,
             ease: "easeInOut"
           }}
-        />
-        
-        {/* Golf Club Animation */}
-        <motion.div
-          className="absolute -right-6 bottom-2 origin-bottom-right"
-          animate={{
-            rotate: [-15, 25, -15]
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-            times: [0, 0.3, 1]
+          style={{
+            bottom: `${size === 'sm' ? '52px' : size === 'md' ? '76px' : '92px'}`,
+            left: '5%',
+            transform: 'translateX(-50%)'
           }}
         >
-          <div className="w-0.5 h-8 bg-amber-700 rounded"></div>
-          <div className="w-3 h-1.5 bg-gray-400 rounded-sm -mt-0.5 ml-0.5 shadow-sm"></div>
+          <motion.img
+            src={golfBallImage}
+            alt="Golf Ball"
+            className={`${ballSize[size]} object-contain mx-auto block`}
+            animate={{
+              rotate: [0, 15, 0, -15, 0, 10, 0, -10, 0]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            style={{
+              filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.4))"
+            }}
+          />
         </motion.div>
       </div>
 

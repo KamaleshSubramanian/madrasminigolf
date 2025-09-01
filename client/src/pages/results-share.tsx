@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useLocation, useParams } from "wouter";
+import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Share, RotateCcw, Trophy, Medal, Award } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { motion } from "framer-motion";
+import logoImage from "@assets/madrasminigolf_mainlogo_1756276456473.png";
 
 interface PlayerScore {
   name: string;
@@ -12,15 +12,23 @@ interface PlayerScore {
   scores: { [hole: number]: number };
 }
 
-export default function Results() {
+export default function ResultsShare() {
   const { gameId } = useParams();
-  const [, navigate] = useLocation();
   const [playerScores, setPlayerScores] = useState<PlayerScore[]>([]);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const { data: gameData, isLoading } = useQuery({
     queryKey: ["/api/games", gameId],
     enabled: !!gameId,
   });
+
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setImageLoaded(true);
+    img.onerror = () => setImageError(true);
+    img.src = logoImage;
+  }, []);
 
   useEffect(() => {
     if (gameData) {
@@ -60,21 +68,6 @@ export default function Results() {
     }
   };
 
-  const handleShare = () => {
-    const shareUrl = `${window.location.origin}/results/share/${gameId}`;
-    if (navigator.share) {
-      navigator.share({
-        title: "My Mini Golf Results",
-        text: `I just played mini golf at Madras Mini Golf! Check out my scores!`,
-        url: shareUrl,
-      });
-    } else {
-      // Fallback - copy to clipboard
-      navigator.clipboard.writeText(shareUrl);
-      alert("Results link copied to clipboard!");
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-golf-cream flex items-center justify-center">
@@ -94,35 +87,80 @@ export default function Results() {
   return (
     <div className="min-h-screen bg-golf-cream p-4">
       <div className="max-w-md mx-auto pt-8">
-        {/* Header */}
+        {/* Logo */}
         <motion.div 
-          className="text-center mb-8"
+          className="text-center mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="text-6xl mb-4">🏆</div>
-          <h2 className="text-3xl font-bold text-golf-dark">Game Complete!</h2>
-          <p className="text-golf-dark opacity-75">Congratulations on a great game</p>
+          {!imageLoaded && !imageError ? (
+            // Loading skeleton
+            <div className="w-48 h-48 mx-auto bg-gradient-to-br from-golf-green/20 to-golf-light/20 rounded-lg animate-pulse flex items-center justify-center">
+              <div className="text-golf-green/60 font-bold text-lg">Loading...</div>
+            </div>
+          ) : imageError ? (
+            // Fallback text logo
+            <div className="w-48 h-48 mx-auto bg-gradient-to-br from-golf-green to-golf-light rounded-lg flex items-center justify-center">
+              <div className="text-white font-bold text-2xl text-center leading-tight">
+                MADRAS<br />MINI GOLF
+              </div>
+            </div>
+          ) : (
+            <img 
+              src={logoImage} 
+              alt="Madras Mini Golf" 
+              className={`w-48 h-48 mx-auto object-contain transition-opacity duration-500 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              loading="eager"
+              decoding="async"
+            />
+          )}
+        </motion.div>
+
+        {/* Venue Information */}
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          <h1 className="text-2xl font-bold text-golf-dark mb-2">MADRAS MINI GOLF</h1>
+          <p className="text-golf-dark opacity-80 text-sm leading-relaxed">
+            Shop No. T-53/B, 4th, Besant Ave Rd,<br />
+            Tiruvalluvar Nagar, Adyar,<br />
+            Chennai, Tamil Nadu 600020
+          </p>
+        </motion.div>
+
+        {/* Game Results Header */}
+        <motion.div 
+          className="text-center mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+        >
+          <div className="text-4xl mb-3">🏆</div>
+          <h2 className="text-2xl font-bold text-golf-dark">Game Results</h2>
+          <p className="text-golf-dark opacity-75">Final Scores</p>
         </motion.div>
         
         {/* Final Scores */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
         >
           <Card className="shadow-lg mb-6">
-            <CardContent className="p-6">
-              <h3 className="font-bold text-golf-dark mb-4 text-center">Final Scores</h3>
-              
+            <CardContent className="p-6">              
               {playerScores.map((player, index) => (
                 <motion.div 
                   key={player.name}
                   className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
+                  transition={{ delay: 0.5 + index * 0.1, duration: 0.4 }}
                 >
                   <div className="flex items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3 text-sm ${
@@ -148,7 +186,7 @@ export default function Results() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
         >
           <Card className="shadow-lg mb-6">
             <CardContent className="p-6">
@@ -199,30 +237,6 @@ export default function Results() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
-        
-        {/* Action Buttons */}
-        <motion.div 
-          className="space-y-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-        >
-          <Button 
-            onClick={handleShare}
-            className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3"
-          >
-            <Share className="mr-2 h-4 w-4" />
-            Share Results
-          </Button>
-          <Button 
-            onClick={() => navigate("/")}
-            variant="outline"
-            className="w-full border-2 border-golf-green text-golf-dark font-bold py-3 hover:bg-gray-50"
-          >
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Play Again
-          </Button>
         </motion.div>
       </div>
     </div>
