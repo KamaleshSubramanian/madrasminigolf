@@ -21,7 +21,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-golf-cream to-green-100 flex items-center justify-center p-4 relative">
       {/* Admin Toggle Button */}
-      <motion.div 
+      {/* <motion.div 
         className="absolute top-4 right-4"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -36,9 +36,9 @@ export default function Landing() {
           <Settings className="mr-2 h-4 w-4" />
           Admin
         </Button>
-      </motion.div>
+      </motion.div> */}
 
-      <motion.div 
+      <motion.div
         className="text-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -53,30 +53,33 @@ export default function Landing() {
           {!imageLoaded && !imageError ? (
             // Loading skeleton
             <div className="w-64 h-64 bg-gradient-to-br from-golf-green/20 to-golf-light/20 rounded-lg animate-pulse flex items-center justify-center">
-              <div className="text-golf-green/60 font-bold text-lg">Loading...</div>
+              <div className="text-golf-green/60 font-bold text-lg">
+                Loading...
+              </div>
             </div>
           ) : imageError ? (
             // Fallback text logo
             <div className="w-64 h-64 bg-gradient-to-br from-golf-green to-golf-light rounded-lg flex items-center justify-center">
               <div className="text-white font-bold text-3xl text-center leading-tight">
-                MADRAS<br />MINI GOLF
+                MADRAS
+                <br />
+                MINI GOLF
               </div>
             </div>
           ) : (
-            <img 
-              src={logoImage} 
-              alt="Madras Mini Golf" 
+            <img
+              src={logoImage}
+              alt="Madras Mini Golf"
               className={`w-64 h-64 object-contain transition-opacity duration-500 ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
+                imageLoaded ? "opacity-100" : "opacity-0"
               }`}
               loading="eager"
               decoding="async"
             />
           )}
         </motion.div>
-        
-        
-        <motion.p 
+
+        <motion.p
           className="text-xl text-golf-dark mb-8 max-w-md mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -84,14 +87,14 @@ export default function Landing() {
         >
           Welcome to the ultimate mini golf experience! Ready to play?
         </motion.p>
-        
+
         {/* Start Game Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
         >
-          <Button 
+          <Button
             onClick={() => {
               // Clear any existing registration data when starting fresh
               sessionStorage.removeItem("registrationFormData");
@@ -104,9 +107,9 @@ export default function Landing() {
             Start Game
           </Button>
         </motion.div>
-        
+
         {/* QR Code Info */}
-        <motion.div 
+        <motion.div
           className="mt-8 text-sm text-golf-dark opacity-75"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
