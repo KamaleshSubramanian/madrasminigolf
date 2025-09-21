@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -15,6 +16,7 @@ export default function PlayerSetup() {
   const { toast } = useToast();
   const [selectedPlayerCount, setSelectedPlayerCount] = useState(4);
   const [playerNames, setPlayerNames] = useState<string[]>(["", "", "", ""]);
+  const [showRulesDialog, setShowRulesDialog] = useState(false);
 
   // Get current pricing to determine weekend/weekday
   const { data: pricing } = useQuery({
@@ -65,7 +67,6 @@ export default function PlayerSetup() {
   };
 
   const handleStartGame = () => {
-    const currentPlayer = JSON.parse(sessionStorage.getItem("currentPlayer") || "{}");
     const filledNames = playerNames.filter(name => name.trim());
     
     if (filledNames.length !== selectedPlayerCount) {
@@ -88,10 +89,19 @@ export default function PlayerSetup() {
       return;
     }
 
+    // Show rules dialog instead of starting game directly
+    setShowRulesDialog(true);
+  };
+
+  const handleProceedAfterRules = () => {
+    const currentPlayer = JSON.parse(sessionStorage.getItem("currentPlayer") || "{}");
+    const filledNames = playerNames.filter(name => name.trim());
+    
     // Check if today is weekend (Saturday = 6, Sunday = 0)
     const today = new Date();
     const isWeekend = today.getDay() === 0 || today.getDay() === 6;
 
+    setShowRulesDialog(false);
     createGameMutation.mutate({
       playerId: currentPlayer.id,
       playerNames: filledNames,
@@ -176,6 +186,64 @@ export default function PlayerSetup() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Rules Dialog */}
+      <Dialog open={showRulesDialog} onOpenChange={setShowRulesDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-golf-dark font-bold text-xl">HOW TO PLAY</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="bg-golf-green text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">1</span>
+                <div>
+                  <span className="font-semibold text-golf-dark">Start from the mat/line</span>
+                  <span className="text-gray-600"> → Place the ball at the starting spot for each hole.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-golf-green text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">2</span>
+                <div>
+                  <span className="font-semibold text-golf-dark">One hit at a time</span>
+                  <span className="text-gray-600"> → Everyone takes turns hitting their ball with the putter.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-golf-green text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">3</span>
+                <div>
+                  <span className="font-semibold text-golf-dark">Count every stroke</span>
+                  <span className="text-gray-600"> → Each hit counts as 1 point, even if the ball doesn't go far.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-golf-green text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">4</span>
+                <div>
+                  <span className="font-semibold text-golf-dark">Stay in bounds</span>
+                  <span className="text-gray-600"> → If the ball goes out, put it back where it went out and add +1 point.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-golf-green text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">5</span>
+                <div>
+                  <span className="font-semibold text-golf-dark">Lowest score wins</span>
+                  <span className="text-gray-600"> → After all holes, the person with the fewest strokes is the winner!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={handleProceedAfterRules}
+              className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3"
+              data-testid="button-proceed"
+            >
+              Got It - Let's Play!
+              <Play className="ml-2 h-4 w-4" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

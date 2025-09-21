@@ -9,6 +9,17 @@ import { ArrowLeft, ArrowRight, Flag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import GolfLoader from "@/components/golf-loader";
 
+// Custom hole names
+const HOLE_NAMES = {
+  1: "Napier Straight",
+  2: "Courtroom Chaos",
+  3: "Lighthouse challenge",
+  4: "Kollywood's Wlak of Fame",
+  5: "The Helicopter",
+  6: "Metro Split",
+  7: "Traffic Jam"
+};
+
 export default function Gameplay() {
   const { gameId } = useParams();
   const [, navigate] = useLocation();
@@ -100,8 +111,17 @@ export default function Gameplay() {
   };
 
   const handleNextHole = () => {
-    // Validate all players have scores
-    const missingScores = playerNames.filter(name => !holeScores[name] || holeScores[name] === 0);
+    // Validate all players have scores (allow 0 for holes 5 and 7)
+    const missingScores = playerNames.filter(name => {
+      const score = holeScores[name];
+      if (currentHole === 5 || currentHole === 7) {
+        // For holes 5 and 7, allow 0 as a valid score
+        return score === undefined || score === null;
+      } else {
+        // For other holes, require score > 0
+        return !score || score === 0;
+      }
+    });
     
     if (missingScores.length > 0) {
       toast({
@@ -180,7 +200,7 @@ export default function Gameplay() {
             </div>
           </div>
           <h2 className="text-3xl font-bold text-golf-dark bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-            Hole {currentHole}
+            {HOLE_NAMES[currentHole as keyof typeof HOLE_NAMES]}
           </h2>
           <p className="text-golf-dark opacity-75">Enter scores for each player</p>
         </div>
@@ -230,7 +250,7 @@ export default function Gameplay() {
                 {/* Score Buttons and Incrementer */}
                 <div className="flex items-center gap-3 mb-4">
                   <div className="grid grid-cols-6 gap-3 flex-1">
-                    {[1, 2, 3, 4, 5, 6].map(strokes => (
+                    {(currentHole === 5 ? [-2, -1, 0, 1, 2, 3] : currentHole === 7 ? [-1, 0, 1, 2, 3, 4] : [1, 2, 3, 4, 5, 6]).map(strokes => (
                       <Button
                         key={`${playerName}-stroke-${strokes}`}
                         variant={holeScores[playerName] === strokes ? "default" : "outline"}
@@ -252,8 +272,8 @@ export default function Gameplay() {
                       type="text"
                       className="w-20 h-10 text-center border-2 border-gray-200 focus:border-golf-green text-sm font-bold"
                       onChange={(e) => handleManualScore(playerName, e.target.value)}
-                      value={manualInputFocused[playerName] ? (holeScores[playerName] || "").toString() : (holeScores[playerName] >= 7 ? holeScores[playerName].toString() : "")}
-                      placeholder="7+"
+                      value={manualInputFocused[playerName] ? (holeScores[playerName] || "").toString() : (holeScores[playerName] >= (currentHole === 5 ? 4 : currentHole === 7 ? 5 : 7) ? holeScores[playerName].toString() : "")}
+                      placeholder={currentHole === 5 ? "4+" : currentHole === 7 ? "5+" : "7+"}
                       maxLength={2}
                       onFocus={() => {
                         setManualInputFocused(prev => ({ ...prev, [playerName]: true }));
