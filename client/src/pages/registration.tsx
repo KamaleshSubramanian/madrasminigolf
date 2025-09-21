@@ -18,6 +18,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import GolfLoader from "@/components/golf-loader";
 
 const registrationSchema = insertPlayerSchema.extend({
+  name: z.string().min(1, "Full name is required"),
+  contact: z.string()
+    .min(1, "Contact number is required")
+    .regex(/^\d{10}$/, "Invalid number"),
   email: z.string().optional(), // Override to make email optional
   consent: z.boolean().refine(val => val === true, {
     message: "You must agree to the terms and conditions",

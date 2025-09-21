@@ -33,10 +33,8 @@ export default function ResultsShare() {
   useEffect(() => {
     if (gameData) {
       // Calculate total scores for each player
-      const scoresByPlayer: {
-        [playerName: string]: { [hole: number]: number };
-      } = {};
-
+      const scoresByPlayer: { [playerName: string]: { [hole: number]: number } } = {};
+      
       (gameData as any)?.scores?.forEach((score: any) => {
         if (!scoresByPlayer[score.playerName]) {
           scoresByPlayer[score.playerName] = {};
@@ -44,21 +42,16 @@ export default function ResultsShare() {
         scoresByPlayer[score.playerName][score.hole] = score.strokes;
       });
 
-      const players: PlayerScore[] = Object.keys(scoresByPlayer).map(
-        (playerName) => {
-          const scores = scoresByPlayer[playerName];
-          const totalScore = Object.values(scores).reduce(
-            (sum: number, strokes: number) => sum + strokes,
-            0
-          );
-
-          return {
-            name: playerName,
-            totalScore,
-            scores,
-          };
-        }
-      );
+      const players: PlayerScore[] = Object.keys(scoresByPlayer).map(playerName => {
+        const scores = scoresByPlayer[playerName];
+        const totalScore = Object.values(scores).reduce((sum: number, strokes: number) => sum + strokes, 0);
+        
+        return {
+          name: playerName,
+          totalScore,
+          scores,
+        };
+      });
 
       // Sort by total score (lowest first)
       players.sort((a, b) => a.totalScore - b.totalScore);
@@ -68,14 +61,10 @@ export default function ResultsShare() {
 
   const getRankIcon = (index: number) => {
     switch (index) {
-      case 0:
-        return "🥇";
-      case 1:
-        return "🥈";
-      case 2:
-        return "🥉";
-      default:
-        return index + 1;
+      case 0: return "🥇";
+      case 1: return "🥈";
+      case 2: return "🥉";
+      default: return index + 1;
     }
   };
 
@@ -99,7 +88,7 @@ export default function ResultsShare() {
     <div className="min-h-screen bg-golf-cream p-4">
       <div className="max-w-md mx-auto pt-8">
         {/* Logo */}
-        <motion.div
+        <motion.div 
           className="text-center mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -108,25 +97,21 @@ export default function ResultsShare() {
           {!imageLoaded && !imageError ? (
             // Loading skeleton
             <div className="w-48 h-48 mx-auto bg-gradient-to-br from-golf-green/20 to-golf-light/20 rounded-lg animate-pulse flex items-center justify-center">
-              <div className="text-golf-green/60 font-bold text-lg">
-                Loading...
-              </div>
+              <div className="text-golf-green/60 font-bold text-lg">Loading...</div>
             </div>
           ) : imageError ? (
             // Fallback text logo
             <div className="w-48 h-48 mx-auto bg-gradient-to-br from-golf-green to-golf-light rounded-lg flex items-center justify-center">
               <div className="text-white font-bold text-2xl text-center leading-tight">
-                MADRAS
-                <br />
-                MINI GOLF
+                MADRAS<br />MINI GOLF
               </div>
             </div>
           ) : (
-            <img
-              src={logoImage}
-              alt="Madras Mini Golf"
+            <img 
+              src={logoImage} 
+              alt="Madras Mini Golf" 
               className={`w-48 h-48 mx-auto object-contain transition-opacity duration-500 ${
-                imageLoaded ? "opacity-100" : "opacity-0"
+                imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               loading="eager"
               decoding="async"
@@ -135,26 +120,22 @@ export default function ResultsShare() {
         </motion.div>
 
         {/* Venue Information */}
-        <motion.div
+        <motion.div 
           className="text-center mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
         >
-          <h1 className="text-2xl font-bold text-golf-dark mb-2">
-            MADRAS MINI GOLF
-          </h1>
+          <h1 className="text-2xl font-bold text-golf-dark mb-2">MADRAS MINI GOLF</h1>
           <p className="text-golf-dark opacity-80 text-sm leading-relaxed">
-            Shop No. T-53/B, 4th, Besant Ave Rd,
-            <br />
-            Tiruvalluvar Nagar, Adyar,
-            <br />
+            Shop No. T-53/B, 4th, Besant Ave Rd,<br />
+            Tiruvalluvar Nagar, Adyar,<br />
             Chennai, Tamil Nadu 600020
           </p>
         </motion.div>
 
         {/* Game Results Header */}
-        <motion.div
+        <motion.div 
           className="text-center mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -164,7 +145,7 @@ export default function ResultsShare() {
           <h2 className="text-2xl font-bold text-golf-dark">Game Results</h2>
           <p className="text-golf-dark opacity-75">Final Scores</p>
         </motion.div>
-
+        
         {/* Final Scores */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -172,9 +153,9 @@ export default function ResultsShare() {
           transition={{ delay: 0.4, duration: 0.6 }}
         >
           <Card className="shadow-lg mb-6">
-            <CardContent className="p-6">
+            <CardContent className="p-6">              
               {playerScores.map((player, index) => (
-                <motion.div
+                <motion.div 
                   key={player.name}
                   className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
                   initial={{ opacity: 0, x: -20 }}
@@ -182,34 +163,25 @@ export default function ResultsShare() {
                   transition={{ delay: 0.5 + index * 0.1, duration: 0.4 }}
                 >
                   <div className="flex items-center">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3 text-sm ${
-                        index === 0
-                          ? "bg-yellow-500 text-white"
-                          : index === 1
-                          ? "bg-gray-400 text-white"
-                          : index === 2
-                          ? "bg-amber-600 text-white"
-                          : "bg-gray-300 text-gray-600"
-                      }`}
-                    >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3 text-sm ${
+                      index === 0 ? "bg-yellow-500 text-white" :
+                      index === 1 ? "bg-gray-400 text-white" :
+                      index === 2 ? "bg-amber-600 text-white" :
+                      "bg-gray-300 text-gray-600"
+                    }`}>
                       {getRankIcon(index)}
                     </div>
-                    <span className="font-semibold text-golf-dark">
-                      {player.name}
-                    </span>
+                    <span className="font-semibold text-golf-dark">{player.name}</span>
                   </div>
                   <div className="bg-golf-green rounded-lg px-4 py-2 shadow-md">
-                    <span className="text-xl font-bold text-white">
-                      {player.totalScore}
-                    </span>
+                    <span className="text-xl font-bold text-white">{player.totalScore}</span>
                   </div>
                 </motion.div>
               ))}
             </CardContent>
           </Card>
         </motion.div>
-
+        
         {/* Game Summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -228,12 +200,9 @@ export default function ResultsShare() {
                   <span className="text-golf-dark">Date:</span>
                   <span className="font-semibold">
                     {(() => {
-                      const gameCompletionTime =
-                        sessionStorage.getItem("gameCompletionTime");
+                      const gameCompletionTime = sessionStorage.getItem('gameCompletionTime');
                       if (gameCompletionTime) {
-                        return new Date(
-                          gameCompletionTime
-                        ).toLocaleDateString();
+                        return new Date(gameCompletionTime).toLocaleDateString();
                       }
                       return new Date().toLocaleDateString();
                     })()}
@@ -247,35 +216,21 @@ export default function ResultsShare() {
                       if (game && game.startedAt && game.completedAt) {
                         const startTime = new Date(game.startedAt);
                         const endTime = new Date(game.completedAt);
-                        const durationMs =
-                          endTime.getTime() - startTime.getTime();
-
+                        const durationMs = endTime.getTime() - startTime.getTime();
+                        
                         const hours = Math.floor(durationMs / (1000 * 60 * 60));
-                        const minutes = Math.floor(
-                          (durationMs % (1000 * 60 * 60)) / (1000 * 60)
-                        );
-                        const seconds = Math.floor(
-                          (durationMs % (1000 * 60)) / 1000
-                        );
-
+                        const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
+                        
                         const parts = [];
-                        if (hours > 0)
-                          parts.push(
-                            `${hours} ${hours === 1 ? "hour" : "hours"}`
-                          );
-                        if (minutes > 0)
-                          parts.push(
-                            `${minutes} ${minutes === 1 ? "min" : "mins"}`
-                          );
-                        if (seconds > 0)
-                          parts.push(
-                            `${seconds} ${seconds === 1 ? "sec" : "secs"}`
-                          );
-
-                        return parts.length > 0 ? parts.join(" ") : "0 secs";
+                        if (hours > 0) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+                        if (minutes > 0) parts.push(`${minutes} ${minutes === 1 ? 'min' : 'mins'}`);
+                        if (seconds > 0) parts.push(`${seconds} ${seconds === 1 ? 'sec' : 'secs'}`);
+                        
+                        return parts.length > 0 ? parts.join(' ') : '0 secs';
                       }
-                      return "N/A";
-                    })()}
+                      return 'N/A';
+                    })()} 
                   </span>
                 </div>
               </div>
