@@ -14,7 +14,7 @@ const HOLE_NAMES = {
   1: "Napier Straight",
   2: "Courtroom Chaos",
   3: "Lighthouse challenge",
-  4: "Kollywood Walk of Fame",
+  4: "Kollywood's Walk of Fame",
   5: "The Helicopter",
   6: "Metro Split",
   7: "Traffic Jam",
@@ -27,11 +27,8 @@ export default function Gameplay() {
 
   const [currentHole, setCurrentHole] = useState(1);
   const [playerNames, setPlayerNames] = useState<string[]>([]);
-  const [totalScores, setTotalScores] = useState<{
-    [playerName: string]: number;
-  }>({});
-  const [holeScores, setHoleScores] = useState<{
-    [playerName: string]: number;
+  const [scoresByHole, setScoresByHole] = useState<{
+    [hole: number]: { [playerName: string]: number };
   }>({});
   const [manualInputFocused, setManualInputFocused] = useState<{
     [playerName: string]: boolean;
@@ -50,18 +47,30 @@ export default function Gameplay() {
     const names = JSON.parse(storedNames);
     setPlayerNames(names);
 
-    // Initialize scores
-    const initialTotalScores: { [playerName: string]: number } = {};
-    const initialHoleScores: { [playerName: string]: number } = {};
+    // Initialize or load scoresByHole from sessionStorage
+    const storedScores = sessionStorage.getItem(`scoresByHole:${gameId}`);
+    let initialScoresByHole: {
+      [hole: number]: { [playerName: string]: number };
+    } = {};
 
-    names.forEach((name: string) => {
-      initialTotalScores[name] = 0;
-      initialHoleScores[name] = 0;
-    });
+    if (storedScores) {
+      initialScoresByHole = JSON.parse(storedScores);
+    }
 
-    setTotalScores(initialTotalScores);
-    setHoleScores(initialHoleScores);
-  }, [navigate]);
+    // Ensure all holes and players are initialized
+    for (let hole = 1; hole <= 7; hole++) {
+      if (!initialScoresByHole[hole]) {
+        initialScoresByHole[hole] = {};
+      }
+      names.forEach((name: string) => {
+        if (initialScoresByHole[hole][name] === undefined) {
+          initialScoresByHole[hole][name] = 0;
+        }
+      });
+    }
+
+    setScoresByHole(initialScoresByHole);
+  }, [navigate, gameId]);
 
   const saveScoresMutation = useMutation({
     mutationFn: (scoresData: any[]) =>
@@ -80,19 +89,38 @@ export default function Gameplay() {
   });
 
   const handleScoreSelect = (playerName: string, strokes: number) => {
-    setHoleScores((prev) => ({
-      ...prev,
-      [playerName]: strokes,
-    }));
+    setScoresByHole((prev) => {
+      const updated = {
+        ...prev,
+        [currentHole]: {
+          ...prev[currentHole],
+          [playerName]: strokes,
+        },
+      };
+      // Persist to sessionStorage
+      sessionStorage.setItem(`scoresByHole:${gameId}`, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const handleManualScore = (playerName: string, strokes: string) => {
     // Allow empty string to clear the field
     if (strokes === "") {
-      setHoleScores((prev) => ({
-        ...prev,
-        [playerName]: 0,
-      }));
+      setScoresByHole((prev) => {
+        const updated = {
+          ...prev,
+          [currentHole]: {
+            ...prev[currentHole],
+            [playerName]: 0,
+          },
+        };
+        // Persist to sessionStorage
+        sessionStorage.setItem(
+          `scoresByHole:${gameId}`,
+          JSON.stringify(updated)
+        );
+        return updated;
+      });
       return;
     }
 
@@ -104,21 +132,43 @@ export default function Gameplay() {
     const strokeCount = parseInt(strokes);
     // Validate range 1-40 (allowing high stroke counts)
     if (strokeCount >= 1 && strokeCount <= 40) {
-      setHoleScores((prev) => ({
-        ...prev,
-        [playerName]: strokeCount,
-      }));
+      setScoresByHole((prev) => {
+        const updated = {
+          ...prev,
+          [currentHole]: {
+            ...prev[currentHole],
+            [playerName]: strokeCount,
+          },
+        };
+        // Persist to sessionStorage
+        sessionStorage.setItem(
+          `scoresByHole:${gameId}`,
+          JSON.stringify(updated)
+        );
+        return updated;
+      });
     }
   };
 
   const calculateTotalScore = (playerName: string) => {
-    return totalScores[playerName] || 0;
+    // Calculate total from all completed holes
+    let total = 0;
+    for (let hole = 1; hole < currentHole; hole++) {
+      if (scoresByHole[hole] && scoresByHole[hole][playerName] !== undefined) {
+        total += scoresByHole[hole][playerName];
+      }
+    }
+    return total;
+  };
+
+  const getCurrentHoleScore = (playerName: string) => {
+    return scoresByHole[currentHole]?.[playerName] || 0;
   };
 
   const handleNextHole = () => {
     // Validate all players have scores (allow 0 for holes 5 and 7)
     const missingScores = playerNames.filter((name) => {
-      const score = holeScores[name];
+      const score = getCurrentHoleScore(name);
       if (currentHole === 5 || currentHole === 7) {
         // For holes 5 and 7, allow 0 as a valid score
         return score === undefined || score === null;
@@ -137,34 +187,32 @@ export default function Gameplay() {
       return;
     }
 
-    // Update total scores with current hole scores
-    const updatedTotalScores = { ...totalScores };
-    playerNames.forEach((playerName) => {
-      updatedTotalScores[playerName] += holeScores[playerName];
-    });
-    setTotalScores(updatedTotalScores);
-
     if (currentHole === 7) {
-      // Game completed - save only total scores
-      const scoresData = playerNames.map((playerName) => ({
-        playerName,
-        hole: 1, // Just using hole 1 as a placeholder since we only store total
-        strokes: updatedTotalScores[playerName],
-      }));
+      // Game completed - calculate final totals from scoresByHole
+      const scoresData = playerNames.map((playerName) => {
+        let totalStrokes = 0;
+        for (let hole = 1; hole <= 7; hole++) {
+          if (
+            scoresByHole[hole] &&
+            scoresByHole[hole][playerName] !== undefined
+          ) {
+            totalStrokes += scoresByHole[hole][playerName];
+          }
+        }
+        return {
+          playerName,
+          hole: 1, // Just using hole 1 as a placeholder since we only store total
+          strokes: totalStrokes,
+        };
+      });
 
       // Store local completion time
       const completionTime = new Date().toISOString();
       sessionStorage.setItem("gameCompletionTime", completionTime);
       saveScoresMutation.mutate(scoresData);
     } else {
-      // Move to next hole
+      // Move to next hole (scores are preserved in scoresByHole)
       setCurrentHole((prev) => prev + 1);
-      // Reset hole scores for next hole
-      const resetHoleScores: { [playerName: string]: number } = {};
-      playerNames.forEach((name) => {
-        resetHoleScores[name] = 0;
-      });
-      setHoleScores(resetHoleScores);
 
       // Scroll to top of page
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -174,12 +222,6 @@ export default function Gameplay() {
   const handlePreviousHole = () => {
     if (currentHole > 1) {
       setCurrentHole((prev) => prev - 1);
-      // Reset hole scores for previous hole
-      const resetHoleScores: { [playerName: string]: number } = {};
-      playerNames.forEach((name) => {
-        resetHoleScores[name] = 0;
-      });
-      setHoleScores(resetHoleScores);
 
       // Scroll to top of page
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -261,18 +303,18 @@ export default function Gameplay() {
                     {(currentHole === 5
                       ? [-2, -1, 0, 1, 2, 3]
                       : currentHole === 7
-                      ? [-1, 0, 1, 2, 3, 4]
+                      ? [-2, -1, 0, 1, 2, 3]
                       : [1, 2, 3, 4, 5, 6]
                     ).map((strokes) => (
                       <Button
                         key={`${playerName}-stroke-${strokes}`}
                         variant={
-                          holeScores[playerName] === strokes
+                          getCurrentHoleScore(playerName) === strokes
                             ? "default"
                             : "outline"
                         }
                         className={`py-3 font-bold transition-all duration-200 ${
-                          holeScores[playerName] === strokes
+                          getCurrentHoleScore(playerName) === strokes
                             ? "bg-golf-green text-white border-golf-green"
                             : "bg-gray-100 border-2 border-gray-200 hover:border-golf-green hover:bg-golf-green hover:text-white"
                         }`}
@@ -293,17 +335,17 @@ export default function Gameplay() {
                       }
                       value={
                         manualInputFocused[playerName]
-                          ? (holeScores[playerName] || "").toString()
-                          : holeScores[playerName] >=
-                            (currentHole === 5 ? 4 : currentHole === 7 ? 5 : 7)
-                          ? holeScores[playerName].toString()
+                          ? (getCurrentHoleScore(playerName) || "").toString()
+                          : getCurrentHoleScore(playerName) >=
+                            (currentHole === 5 ? 4 : currentHole === 7 ? 4 : 7)
+                          ? getCurrentHoleScore(playerName).toString()
                           : ""
                       }
                       placeholder={
                         currentHole === 5
                           ? "4+"
                           : currentHole === 7
-                          ? "5+"
+                          ? "4+"
                           : "7+"
                       }
                       maxLength={2}
