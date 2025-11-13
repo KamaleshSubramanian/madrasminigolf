@@ -193,12 +193,19 @@ export default function AdminDashboard() {
               ) : recentGames && Array.isArray(recentGames) && recentGames.length > 0 ? (
                 recentGames.map((game: any, index: number) => (
                   <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                    <div className="flex items-center">
+                    <div className="flex items-center flex-1">
                       <div className="w-10 h-10 bg-golf-green text-white rounded-full flex items-center justify-center font-bold mr-3">
                         <span>{game.playerCount}</span>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-800">{game.leadPlayer}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-gray-800">{game.leadPlayer}</p>
+                          {game.isDemoGame && (
+                            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                              Demo
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-600">{game.time}</p>
                       </div>
                     </div>

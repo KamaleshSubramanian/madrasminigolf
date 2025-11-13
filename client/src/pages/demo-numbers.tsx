@@ -161,10 +161,10 @@ export default function DemoNumbers() {
           <Card className="shadow-md mb-6">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Add Demo Phone Number</h3>
-              <div className="flex gap-3">
+              <div className="flex gap-3 mb-3">
                 <Input
                   type="tel"
-                  placeholder="Enter phone number"
+                  placeholder="e.g., 8015989208 or +91 80159-89208"
                   value={newPhoneNumber}
                   onChange={(e) => setNewPhoneNumber(e.target.value)}
                   onKeyPress={(e) => {
@@ -186,6 +186,10 @@ export default function DemoNumbers() {
                   {addNumberMutation.isPending ? "Adding..." : "Add Number"}
                 </Button>
               </div>
+              <p className="text-xs text-gray-500">
+                Phone numbers are automatically normalized (spaces, dashes, and +91 are removed). 
+                All formats like "80159 89208", "+91 8015989208", or "8015-989208" will be stored as "8015989208".
+              </p>
             </CardContent>
           </Card>
 
