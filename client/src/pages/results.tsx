@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Share, RotateCcw, Trophy, Medal, Award } from "lucide-react";
+import { Share, RotateCcw, Trophy, Medal, Award, Star } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface PlayerScore {
@@ -200,6 +200,45 @@ export default function Results() {
           </Card>
         </motion.div>
         
+        {/* Google Review Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+        >
+          <Card className="shadow-lg mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
+            <CardContent className="p-6 text-center">
+              <div className="flex justify-center mb-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star 
+                    key={star} 
+                    className="w-6 h-6 fill-yellow-400 text-yellow-400"
+                    data-testid={`star-${star}`}
+                  />
+                ))}
+              </div>
+              <h3 className="font-bold text-golf-dark mb-2 text-lg">Love Your Experience?</h3>
+              <p className="text-golf-dark text-sm mb-4 opacity-80">
+                Share your mini golf adventure with others on Google!
+              </p>
+              <Button 
+                asChild
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 shadow-md"
+                data-testid="button-google-review"
+              >
+                <a 
+                  href="https://g.page/r/CXzRJDgzZKr1EAI/review" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <Star className="mr-2 h-4 w-4 fill-white" />
+                  Leave a Google Review
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+        
         {/* Action Buttons */}
         <motion.div 
           className="space-y-4"
@@ -210,6 +249,7 @@ export default function Results() {
           <Button 
             onClick={handleShare}
             className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3"
+            data-testid="button-share-results"
           >
             <Share className="mr-2 h-4 w-4" />
             Share Results
@@ -218,6 +258,7 @@ export default function Results() {
             onClick={() => navigate("/")}
             variant="outline"
             className="w-full border-2 border-golf-green text-golf-dark font-bold py-3 hover:bg-gray-50"
+            data-testid="button-play-again"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
             Play Again

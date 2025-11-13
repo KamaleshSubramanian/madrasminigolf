@@ -64,6 +64,8 @@ export default function Pricing() {
     defaultValues: {
       weekdayPrice: "60.00",
       weekendPrice: "80.00",
+      weekdayDiscount: "0.00",
+      weekendDiscount: "0.00",
     },
   });
 
@@ -78,6 +80,8 @@ export default function Pricing() {
       form.reset({
         weekdayPrice: (currentPricing as any).weekdayPrice,
         weekendPrice: (currentPricing as any).weekendPrice,
+        weekdayDiscount: (currentPricing as any).weekdayDiscount || "0.00",
+        weekendDiscount: (currentPricing as any).weekendDiscount || "0.00",
       });
     }
   }, [currentPricing, form]);
@@ -112,6 +116,8 @@ export default function Pricing() {
       form.reset({
         weekdayPrice: (currentPricing as any).weekdayPrice,
         weekendPrice: (currentPricing as any).weekendPrice,
+        weekdayDiscount: (currentPricing as any).weekdayDiscount || "0.00",
+        weekendDiscount: (currentPricing as any).weekendDiscount || "0.00",
       });
     }
   };
@@ -276,6 +282,67 @@ export default function Pricing() {
                   />
                 </div>
                 
+                {/* Discount Percentage Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="weekdayDiscount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 font-medium flex items-center">
+                          <Calculator className="mr-2 h-4 w-4 text-blue-600" />
+                          Weekday Discount (%)
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input 
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="100"
+                              placeholder="0.00"
+                              className="pr-8 border-2 border-gray-200 focus:border-golf-green"
+                              {...field}
+                            />
+                            <span className="absolute right-3 top-3 text-gray-500">%</span>
+                          </div>
+                        </FormControl>
+                        <p className="text-sm text-gray-600">Discount applied to weekday price</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="weekendDiscount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 font-medium flex items-center">
+                          <Calculator className="mr-2 h-4 w-4 text-orange-600" />
+                          Weekend Discount (%)
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input 
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="100"
+                              placeholder="0.00"
+                              className="pr-8 border-2 border-gray-200 focus:border-golf-green"
+                              {...field}
+                            />
+                            <span className="absolute right-3 top-3 text-gray-500">%</span>
+                          </div>
+                        </FormControl>
+                        <p className="text-sm text-gray-600">Discount applied to weekend price</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-4">
                   <Button 
@@ -311,8 +378,10 @@ export default function Pricing() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weekday Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weekend Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weekday</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weekday Discount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weekend</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weekend Discount</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated By</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   </tr>
@@ -320,7 +389,7 @@ export default function Pricing() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {historyLoading ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center">
+                      <td colSpan={7} className="px-6 py-4 text-center">
                         <div className="flex justify-center py-4">
                           <GolfLoader text="Loading history" size="sm" />
                         </div>
@@ -335,8 +404,14 @@ export default function Pricing() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-golf-green">
                           ₹{entry.weekdayPrice}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                          {entry.weekdayDiscount || '0.00'}%
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-golf-green">
                           ₹{entry.weekendPrice}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-orange-600">
+                          {entry.weekendDiscount || '0.00'}%
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           Admin User
@@ -354,7 +429,7 @@ export default function Pricing() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">No pricing history available</td>
+                      <td colSpan={7} className="px-6 py-4 text-center text-gray-500">No pricing history available</td>
                     </tr>
                   )}
                 </tbody>

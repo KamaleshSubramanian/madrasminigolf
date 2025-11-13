@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+import About from "@/pages/about";
 import Landing from "@/pages/landing";
 import Registration from "@/pages/registration";
 import TermsAndConditions from "@/pages/terms-and-conditions";
@@ -15,12 +16,14 @@ import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
 import Sales from "@/pages/sales";
 import Pricing from "@/pages/pricing";
+import DemoNumbers from "@/pages/demo-numbers";
 
 function Router() {
   return (
     <Switch>
       {/* Player Flow */}
       <Route path="/" component={Landing} />
+      <Route path="/about" component={About} />
       <Route path="/register" component={Registration} />
       <Route path="/registration" component={Registration} />
       <Route path="/terms" component={TermsAndConditions} />
@@ -34,6 +37,7 @@ function Router() {
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/sales" component={Sales} />
       <Route path="/admin/pricing" component={Pricing} />
+      <Route path="/admin/demo-numbers" component={DemoNumbers} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

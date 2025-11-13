@@ -1,13 +1,14 @@
 import { 
-  users, players, games, scores, pricing,
+  users, players, games, scores, pricing, demoPhoneNumbers,
   type User, type InsertUser,
   type Player, type InsertPlayer,
   type Game, type InsertGame,
   type Score, type InsertScore,
-  type Pricing, type InsertPricing
+  type Pricing, type InsertPricing,
+  type DemoPhoneNumber, type InsertDemoPhoneNumber
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, gte, lte, and } from "drizzle-orm";
+import { eq, desc, sql, gte, lte, and, not } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -41,6 +42,12 @@ export interface IStorage {
   getMonthlySales(startDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }>;
   getHourlySales(date: Date): Promise<Array<{ hour: number; games: number; revenue: string }>>;
   getSalesStats(startDate: Date, endDate: Date): Promise<{ totalGames: number; totalRevenue: string; totalPlayers: number }>;
+
+  // Demo phone numbers methods
+  addDemoPhoneNumber(demoNumber: InsertDemoPhoneNumber): Promise<DemoPhoneNumber>;
+  removeDemoPhoneNumber(id: string): Promise<void>;
+  getDemoPhoneNumbers(): Promise<DemoPhoneNumber[]>;
+  isDemoPhoneNumber(phoneNumber: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -105,7 +112,8 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(games)
       .where(and(
         gte(games.completedAt, startDate),
-        lte(games.completedAt, endDate)
+        lte(games.completedAt, endDate),
+        eq(games.isDemoGame, false)
       ))
       .orderBy(desc(games.completedAt));
   }
@@ -166,7 +174,8 @@ export class DatabaseStorage implements IStorage {
       .from(games)
       .where(and(
         gte(games.completedAt, startOfDay),
-        lte(games.completedAt, endOfDay)
+        lte(games.completedAt, endOfDay),
+        eq(games.isDemoGame, false)
       ));
 
     return {
@@ -189,7 +198,8 @@ export class DatabaseStorage implements IStorage {
       .from(games)
       .where(and(
         gte(games.completedAt, startDate),
-        lte(games.completedAt, endDate)
+        lte(games.completedAt, endDate),
+        eq(games.isDemoGame, false)
       ));
 
     return {
@@ -212,7 +222,8 @@ export class DatabaseStorage implements IStorage {
       .from(games)
       .where(and(
         gte(games.completedAt, startDate),
-        lte(games.completedAt, endDate)
+        lte(games.completedAt, endDate),
+        eq(games.isDemoGame, false)
       ));
 
     return {
@@ -237,7 +248,8 @@ export class DatabaseStorage implements IStorage {
       .from(games)
       .where(and(
         gte(games.completedAt, startOfDay),
-        lte(games.completedAt, endOfDay)
+        lte(games.completedAt, endOfDay),
+        eq(games.isDemoGame, false)
       ))
       .groupBy(sql`extract(hour from ${games.completedAt})`)
       .orderBy(sql`extract(hour from ${games.completedAt})`);
@@ -259,7 +271,8 @@ export class DatabaseStorage implements IStorage {
       .from(games)
       .where(and(
         gte(games.completedAt, startDate),
-        lte(games.completedAt, endDate)
+        lte(games.completedAt, endDate),
+        eq(games.isDemoGame, false)
       ));
 
     return {
@@ -267,6 +280,37 @@ export class DatabaseStorage implements IStorage {
       totalRevenue: result?.totalRevenue || "0",
       totalPlayers: result?.totalPlayers || 0,
     };
+  }
+
+  async addDemoPhoneNumber(insertDemoNumber: InsertDemoPhoneNumber): Promise<DemoPhoneNumber> {
+    const [demoNumber] = await db
+      .insert(demoPhoneNumbers)
+      .values({
+        ...insertDemoNumber,
+        addedAt: new Date(),
+      })
+      .returning();
+    return demoNumber;
+  }
+
+  async removeDemoPhoneNumber(id: string): Promise<void> {
+    await db
+      .delete(demoPhoneNumbers)
+      .where(eq(demoPhoneNumbers.id, id));
+  }
+
+  async getDemoPhoneNumbers(): Promise<DemoPhoneNumber[]> {
+    return await db.select().from(demoPhoneNumbers)
+      .orderBy(desc(demoPhoneNumbers.addedAt));
+  }
+
+  async isDemoPhoneNumber(phoneNumber: string): Promise<boolean> {
+    const [result] = await db
+      .select()
+      .from(demoPhoneNumbers)
+      .where(eq(demoPhoneNumbers.phoneNumber, phoneNumber))
+      .limit(1);
+    return !!result;
   }
 }
 

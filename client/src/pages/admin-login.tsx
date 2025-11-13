@@ -226,16 +226,16 @@ export default function AdminLogin() {
           </Form>
 
           {/* Back to Game Link */}
-          {/* <div className="text-center mt-6">
+          <div className="text-center mt-6">
             <Button
               variant="ghost"
               onClick={() => navigate("/")}
               className="text-golf-green hover:underline text-sm"
             >
               <ArrowLeft className="mr-1 h-4 w-4" />
-              Back to Game
+              Test Game
             </Button>
-          </div> */}
+          </div>
         </CardContent>
       </Card>
     </div>
