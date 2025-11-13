@@ -313,12 +313,14 @@ export class DatabaseStorage implements IStorage {
     // Normalize the input phone number before checking
     const normalizedPhone = normalizePhoneNumber(phoneNumber);
     
-    const [result] = await db
-      .select()
-      .from(demoPhoneNumbers)
-      .where(eq(demoPhoneNumbers.phoneNumber, normalizedPhone))
-      .limit(1);
-    return !!result;
+    // Get all demo numbers and normalize them for comparison
+    // This handles cases where numbers in DB have spaces/dashes
+    const allDemoNumbers = await db.select().from(demoPhoneNumbers);
+    
+    // Check if any normalized demo number matches the normalized input
+    return allDemoNumbers.some(demo => 
+      normalizePhoneNumber(demo.phoneNumber) === normalizedPhone
+    );
   }
 }
 
