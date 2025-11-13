@@ -9,26 +9,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 import { ArrowLeft, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import GolfLoader from "@/components/golf-loader";
 
 const loginSchema = z.object({
@@ -66,7 +50,7 @@ export default function AdminLogin() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (data: Omit<LoginForm, "remember">) =>
+    mutationFn: (data: Omit<LoginForm, "remember">) => 
       apiRequest("POST", "/api/admin/login", data),
     onSuccess: () => {
       navigate("/admin/dashboard");
@@ -92,11 +76,7 @@ export default function AdminLogin() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <GolfLoader
-          text="Checking authentication..."
-          size="lg"
-          className="text-white"
-        />
+        <GolfLoader text="Checking authentication..." size="lg" className="text-white" />
       </div>
     );
   }
@@ -111,7 +91,7 @@ export default function AdminLogin() {
             <h2 className="text-2xl font-bold text-gray-800">Admin Login</h2>
             <p className="text-gray-600">Access the management dashboard</p>
           </div>
-
+          
           {/* Login Form */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -120,12 +100,10 @@ export default function AdminLogin() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700 font-medium">
-                      Username
-                    </FormLabel>
+                    <FormLabel className="text-gray-700 font-medium">Username</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter username"
+                      <Input 
+                        placeholder="Enter username" 
                         className="border-2 border-gray-200 focus:border-golf-green"
                         {...field}
                       />
@@ -134,20 +112,18 @@ export default function AdminLogin() {
                   </FormItem>
                 )}
               />
-
+              
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700 font-medium">
-                      Password
-                    </FormLabel>
+                    <FormLabel className="text-gray-700 font-medium">Password</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input
+                        <Input 
                           type={showPassword ? "text" : "password"}
-                          placeholder="Enter password"
+                          placeholder="Enter password" 
                           className="border-2 border-gray-200 focus:border-golf-green pr-10"
                           {...field}
                         />
@@ -170,7 +146,7 @@ export default function AdminLogin() {
                   </FormItem>
                 )}
               />
-
+              
               <div className="flex items-center justify-between">
                 <FormField
                   control={form.control}
@@ -178,7 +154,7 @@ export default function AdminLogin() {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                       <FormControl>
-                        <Checkbox
+                        <Checkbox 
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -201,10 +177,9 @@ export default function AdminLogin() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Password Reset</AlertDialogTitle>
                       <AlertDialogDescription>
-                        For security reasons, password reset must be done
-                        manually by the system administrator. Please contact
-                        your IT administrator or the person who set up this mini
-                        golf system to reset your password.
+                        For security reasons, password reset must be done manually by the system administrator. 
+                        Please contact your IT administrator or the person who set up this mini golf system 
+                        to reset your password.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -213,18 +188,19 @@ export default function AdminLogin() {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
-
-              <Button
-                type="submit"
+              
+              <Button 
+                type="submit" 
                 className="w-full bg-golf-green hover:bg-golf-light text-white font-bold py-3"
                 disabled={loginMutation.isPending}
               >
                 <LogIn className="mr-2 h-4 w-4" />
                 {loginMutation.isPending ? "Logging In..." : "Login"}
               </Button>
+              
             </form>
           </Form>
-
+          
           {/* Back to Game Link */}
           <div className="text-center mt-6">
             <Button
@@ -233,11 +209,12 @@ export default function AdminLogin() {
               className="text-golf-green hover:underline text-sm"
             >
               <ArrowLeft className="mr-1 h-4 w-4" />
-              Test Game
+              Back to Game
             </Button>
           </div>
         </CardContent>
       </Card>
+      
     </div>
   );
 }

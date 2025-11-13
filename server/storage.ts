@@ -9,6 +9,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, gte, lte, and, not } from "drizzle-orm";
+import { normalizePhoneNumber } from "./utils/phoneNormalizer";
 
 export interface IStorage {
   // User methods
@@ -283,10 +284,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addDemoPhoneNumber(insertDemoNumber: InsertDemoPhoneNumber): Promise<DemoPhoneNumber> {
+    // Normalize phone number before storing
+    const normalizedPhone = normalizePhoneNumber(insertDemoNumber.phoneNumber);
+    
     const [demoNumber] = await db
       .insert(demoPhoneNumbers)
       .values({
         ...insertDemoNumber,
+        phoneNumber: normalizedPhone,
         addedAt: new Date(),
       })
       .returning();
@@ -305,10 +310,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async isDemoPhoneNumber(phoneNumber: string): Promise<boolean> {
+    // Normalize the input phone number before checking
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
+    
     const [result] = await db
       .select()
       .from(demoPhoneNumbers)
-      .where(eq(demoPhoneNumbers.phoneNumber, phoneNumber))
+      .where(eq(demoPhoneNumbers.phoneNumber, normalizedPhone))
       .limit(1);
     return !!result;
   }

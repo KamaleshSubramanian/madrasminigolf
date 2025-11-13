@@ -63,8 +63,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const admin = await storage.getUserByUsername("admin");
         if (admin) {
           await storage.createPricing({
-            weekdayPrice: "60.00",
-            weekendPrice: "80.00",
+            weekdayPrice: "599.00",
+            weekendPrice: "699.00",
             weekdayDiscount: "0.00",
             weekendDiscount: "0.00",
             updatedBy: admin.id,
@@ -338,7 +338,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const endOfDay = new Date(today);
       endOfDay.setHours(23, 59, 59, 999);
 
-      const games = await storage.getGamesByDateRange(startOfDay, endOfDay);
+      // Get all games including demo games
+      const games = await storage.getGames(startOfDay, endOfDay);
       
       const recentGames = await Promise.all(games.slice(0, 10).map(async game => {
         const player = await storage.getPlayer(game.playerId);
@@ -376,6 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             timeZone: 'Asia/Kolkata'
           }),
           duration: durationText,
+          isDemoGame: game.isDemoGame,
         };
       }));
 

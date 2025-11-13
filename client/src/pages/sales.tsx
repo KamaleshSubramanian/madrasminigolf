@@ -103,6 +103,19 @@ export default function Sales() {
         const response = await fetch(`/api/admin/transactions?date=${format(new Date(), 'yyyy-MM-dd')}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
+      } else if (selectedPeriod === "week") {
+        const today = new Date();
+        const weekAgo = new Date(today);
+        weekAgo.setDate(today.getDate() - 7);
+        const response = await fetch(`/api/admin/transactions?from=${format(weekAgo, 'yyyy-MM-dd')}&to=${format(today, 'yyyy-MM-dd')}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      } else if (selectedPeriod === "month") {
+        const today = new Date();
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const response = await fetch(`/api/admin/transactions?from=${format(firstDayOfMonth, 'yyyy-MM-dd')}&to=${format(today, 'yyyy-MM-dd')}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
       } else {
         const response = await fetch('/api/admin/transactions');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -460,6 +473,10 @@ export default function Sales() {
               <h3 className="text-lg font-semibold text-gray-800">{
                 selectedPeriod === "custom" && dateRange.from && dateRange.to
                   ? `${format(dateRange.from, "MMM dd")} - ${format(dateRange.to, "MMM dd, yyyy")} Transactions`
+                  : selectedPeriod === "week"
+                  ? "Weekly Transactions"
+                  : selectedPeriod === "month"
+                  ? "Monthly Transactions"
                   : "Today's Transactions"
               }</h3>
               <Button 
