@@ -78,9 +78,10 @@ export default function AdminDashboard() {
             <Button
               onClick={() => logoutMutation.mutate()}
               variant="outline"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 self-start md:self-auto"
+              className="hidden md:flex items-center gap-2 text-gray-600 hover:text-gray-800"
               disabled={logoutMutation.isPending}
               size="sm"
+              data-testid="button-logout-header"
             >
               <LogOut className="h-4 w-4" />
               {logoutMutation.isPending ? "Logging out..." : "Logout"}

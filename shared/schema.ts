@@ -24,6 +24,7 @@ export const games = pgTable("games", {
   playerCount: integer("player_count").notNull(),
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
   isWeekend: boolean("is_weekend").notNull(),
+  isDemoGame: boolean("is_demo_game").notNull().default(false),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at").notNull(),
 });
@@ -40,8 +41,17 @@ export const pricing = pgTable("pricing", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   weekdayPrice: decimal("weekday_price", { precision: 10, scale: 2 }).notNull(),
   weekendPrice: decimal("weekend_price", { precision: 10, scale: 2 }).notNull(),
+  weekdayDiscount: decimal("weekday_discount", { precision: 5, scale: 2 }).notNull().default('0.00'),
+  weekendDiscount: decimal("weekend_discount", { precision: 5, scale: 2 }).notNull().default('0.00'),
   updatedAt: timestamp("updated_at").notNull(),
   updatedBy: varchar("updated_by").notNull().references(() => users.id),
+});
+
+export const demoPhoneNumbers = pgTable("demo_phone_numbers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  phoneNumber: text("phone_number").notNull().unique(),
+  addedAt: timestamp("added_at").notNull(),
+  addedBy: varchar("added_by").notNull().references(() => users.id),
 });
 
 // Relations
@@ -67,6 +77,13 @@ export const scoresRelations = relations(scores, ({ one }) => ({
 export const pricingRelations = relations(pricing, ({ one }) => ({
   updatedByUser: one(users, {
     fields: [pricing.updatedBy],
+    references: [users.id],
+  }),
+}));
+
+export const demoPhoneNumbersRelations = relations(demoPhoneNumbers, ({ one }) => ({
+  addedByUser: one(users, {
+    fields: [demoPhoneNumbers.addedBy],
     references: [users.id],
   }),
 }));
@@ -100,6 +117,11 @@ export const insertPricingSchema = createInsertSchema(pricing).omit({
   id: true,
 });
 
+export const insertDemoPhoneNumberSchema = createInsertSchema(demoPhoneNumbers).omit({
+  id: true,
+  addedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -115,3 +137,6 @@ export type InsertScore = z.infer<typeof insertScoreSchema>;
 
 export type Pricing = typeof pricing.$inferSelect;
 export type InsertPricing = z.infer<typeof insertPricingSchema>;
+
+export type DemoPhoneNumber = typeof demoPhoneNumbers.$inferSelect;
+export type InsertDemoPhoneNumber = z.infer<typeof insertDemoPhoneNumberSchema>;

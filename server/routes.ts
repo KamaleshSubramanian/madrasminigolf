@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcryptjs";
-import { insertPlayerSchema, insertScoreSchema, insertPricingSchema } from "@shared/schema";
+import { insertPlayerSchema, insertScoreSchema, insertPricingSchema, insertDemoPhoneNumberSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
@@ -65,6 +65,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createPricing({
             weekdayPrice: "60.00",
             weekendPrice: "80.00",
+            weekdayDiscount: "0.00",
+            weekendDiscount: "0.00",
             updatedBy: admin.id,
             updatedAt: new Date(),
           });
@@ -106,15 +108,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const gameData = createGameSchema.parse(req.body);
       
+      // Get player to check contact number
+      const player = await storage.getPlayer(gameData.playerId);
+      if (!player) {
+        return res.status(400).json({ message: "Player not found" });
+      }
+
+      // Check if player's contact is a demo phone number
+      const isDemoGame = await storage.isDemoPhoneNumber(player.contact);
+      
       // Calculate cost based on pricing and day
       const currentPricing = await storage.getCurrentPricing();
       if (!currentPricing) {
         return res.status(400).json({ message: "Pricing not configured" });
       }
 
-      const pricePerPlayer = gameData.isWeekend 
+      const basePrice = gameData.isWeekend 
         ? parseFloat(currentPricing.weekendPrice) 
         : parseFloat(currentPricing.weekdayPrice);
+      
+      const discountPercentage = gameData.isWeekend 
+        ? parseFloat(currentPricing.weekendDiscount || '0') 
+        : parseFloat(currentPricing.weekdayDiscount || '0');
+      
+      // Apply discount: finalPrice = basePrice * (1 - discount/100)
+      const pricePerPlayer = basePrice * (1 - discountPercentage / 100);
       
       const totalCost = (pricePerPlayer * gameData.playerCount).toFixed(2);
 
@@ -123,6 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const game = await storage.createGame({
         ...gameData,
+        isDemoGame,
         totalCost,
         startedAt: gameStartTime,
         completedAt: gameStartTime, // Will be updated when game actually completes
@@ -675,6 +694,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       res.json(transactions);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Demo phone numbers management
+  app.get("/api/admin/demo-numbers", requireAuth, async (req, res) => {
+    try {
+      const demoNumbers = await storage.getDemoPhoneNumbers();
+      res.json(demoNumbers);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/admin/demo-numbers", requireAuth, async (req, res) => {
+    try {
+      const demoNumberData = insertDemoPhoneNumberSchema.parse({
+        phoneNumber: req.body.phoneNumber,
+        addedBy: req.session.userId,
+      });
+      
+      const demoNumber = await storage.addDemoPhoneNumber(demoNumberData);
+      res.json(demoNumber);
+    } catch (error: any) {
+      if (error.message?.includes('unique')) {
+        return res.status(400).json({ message: "This phone number is already in the demo list" });
+      }
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/admin/demo-numbers/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.removeDemoPhoneNumber(id);
+      res.json({ message: "Demo phone number removed successfully" });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
